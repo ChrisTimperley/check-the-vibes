@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import * as dotenv from 'dotenv';
-import { GitHubService } from './services/github';
-import { ReportGenerator } from './services/report';
-import { ScanConfig } from './types';
+import dotenv from 'dotenv';
+import { GitHubService } from './services/github.js';
+import { ReportGenerator } from './services/report.js';
+import type { ScanConfig } from './types/index.js';
 import {
   parseDate,
   validateDateRange,
   writeReportToFile,
   getDefaultOutputPath,
   formatDuration,
-} from './utils/helpers';
+} from './utils/helpers.js';
 
 // Load environment variables
 dotenv.config();

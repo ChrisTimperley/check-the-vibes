@@ -2,13 +2,18 @@
   "name": "check-the-vibes",
   "version": "1.0.0",
   "description": "A simple GitHub repo scanner that assesses for SWE best practices and good teamwork",
+  "type": "module",
   "main": "dist/index.js",
   "bin": {
     "check-the-vibes": "dist/cli.js"
   },
+  "engines": {
+    "node": ">=22.0.0",
+    "npm": ">=10.0.0"
+  },
   "scripts": {
     "build": "tsc",
-    "dev": "ts-node src/cli.ts",
+    "dev": "tsx src/cli.ts",
     "start": "node dist/cli.js",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
@@ -16,7 +21,9 @@
     "format:check": "prettier --check src/**/*.ts",
     "clean": "rm -rf dist",
     "prebuild": "npm run clean",
-    "test": "echo \"Tests will be implemented later\""
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "type-check": "tsc --noEmit"
   },
   "keywords": [
     "github",
@@ -36,14 +43,16 @@
   "devDependencies": {
     "@eslint/js": "^9.36.0",
     "@types/js-yaml": "^4.0.9",
-    "@types/node": "^24.5.2",
+    "@types/node": "^22.7.7",
     "@typescript-eslint/eslint-plugin": "^8.44.1",
     "@typescript-eslint/parser": "^8.44.1",
+    "@vitest/coverage-v8": "^2.0.0",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "prettier": "^3.6.2",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.9.2"
+    "tsx": "^4.16.2",
+    "typescript": "^5.6.2",
+    "vitest": "^2.0.0"
   }
 }

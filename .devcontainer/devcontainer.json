@@ -1,6 +1,6 @@
 {
   "name": "Check the Vibes - Node.js & TypeScript",
-  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-20-bullseye",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
   "features": {
     "ghcr.io/devcontainers/features/github-cli:1": {},
     "ghcr.io/devcontainers/features/git:1": {}
@@ -8,7 +8,15 @@
   "customizations": {
     "vscode": {
       "settings": {
-        "typescript.preferences.importModuleSpecifier": "relative"
+        "typescript.preferences.importModuleSpecifier": "relative",
+        "typescript.preferences.includePackageJsonAutoImports": "on",
+        "typescript.suggest.autoImports": true,
+        "eslint.format.enable": true,
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit"
+        }
       },
       "extensions": [
         "ms-vscode.vscode-typescript-next",
@@ -19,7 +27,7 @@
       ]
     }
   },
-  "forwardPorts": [3000],
+  "forwardPorts": [3000, 8000],
   "postCreateCommand": "npm install",
   "remoteUser": "node"
 }

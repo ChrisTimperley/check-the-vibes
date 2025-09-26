@@ -20,7 +20,7 @@ A simple GitHub repo scanner that assesses for SWE best practices and good teamw
 
 ### Prerequisites
 
-- Node.js 16+ and npm
+- **Node.js 22+** and npm 10+
 - GitHub Personal Access Token (optional but recommended for private repos and higher rate limits)
 
 ### Installation

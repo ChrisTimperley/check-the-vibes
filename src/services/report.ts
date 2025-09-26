@@ -1,5 +1,5 @@
-import * as yaml from 'js-yaml';
-import { RepositoryReport, PullRequestAnalysis, ScanConfig } from '../types';
+import yaml from 'js-yaml';
+import type { RepositoryReport, PullRequestAnalysis, ScanConfig } from '../types/index.js';
 
 export class ReportGenerator {
   generateReport(

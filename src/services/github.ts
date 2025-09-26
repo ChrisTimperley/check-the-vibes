@@ -1,13 +1,22 @@
 import { Octokit } from '@octokit/rest';
-import { PullRequestAnalysis } from '../types';
+import type { PullRequestAnalysis } from '../types/index.js';
 
 export class GitHubService {
   private octokit: Octokit;
+  private readonly abortController: AbortController;
 
   constructor(token?: string) {
     this.octokit = new Octokit({
       auth: token,
     });
+    this.abortController = new AbortController();
+  }
+
+  /**
+   * Cancel all ongoing operations
+   */
+  cancel(): void {
+    this.abortController.abort();
   }
 
   async getPullRequestsSince(
@@ -193,8 +202,11 @@ export class GitHubService {
       });
 
       return checkRuns.data.check_runs || [];
-    } catch {
-      console.warn(`Failed to get check runs for PR ${prNumber}`);
+    } catch (error) {
+      const enhancedError = new Error(`Failed to get check runs for PR ${prNumber}`, {
+        cause: error,
+      });
+      console.warn(enhancedError.message, { cause: enhancedError.cause });
       return [];
     }
   }
@@ -229,7 +241,10 @@ export class GitHubService {
         result.repository.pullRequest.closingIssuesReferences.nodes;
       return closingIssues.length > 0 ? closingIssues[0].number : null;
     } catch (error) {
-      console.warn(`Failed to get linked issues for PR ${prNumber}:`, error);
+      const enhancedError = new Error(`Failed to get linked issues for PR ${prNumber}`, {
+        cause: error,
+      });
+      console.warn(enhancedError.message, { cause: enhancedError.cause });
       return null;
     }
   }
@@ -238,7 +253,11 @@ export class GitHubService {
     try {
       await this.octokit.repos.get({ owner, repo });
       return true;
-    } catch {
+    } catch (error) {
+      const enhancedError = new Error(`Failed to validate repository ${owner}/${repo}`, {
+        cause: error,
+      });
+      console.warn(enhancedError.message, { cause: enhancedError.cause });
       return false;
     }
   }
