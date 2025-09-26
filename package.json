@@ -1,0 +1,49 @@
+{
+  "name": "check-the-vibes",
+  "version": "1.0.0",
+  "description": "A simple GitHub repo scanner that assesses for SWE best practices and good teamwork",
+  "main": "dist/index.js",
+  "bin": {
+    "check-the-vibes": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/cli.ts",
+    "start": "node dist/cli.js",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "format": "prettier --write src/**/*.ts",
+    "format:check": "prettier --check src/**/*.ts",
+    "clean": "rm -rf dist",
+    "prebuild": "npm run clean",
+    "test": "echo \"Tests will be implemented later\""
+  },
+  "keywords": [
+    "github",
+    "pr-analysis",
+    "code-review",
+    "best-practices",
+    "typescript"
+  ],
+  "author": "Chris Timperley",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "@octokit/rest": "^22.0.0",
+    "commander": "^14.0.1",
+    "dotenv": "^17.2.2",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.36.0",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^24.5.2",
+    "@typescript-eslint/eslint-plugin": "^8.44.1",
+    "@typescript-eslint/parser": "^8.44.1",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "prettier": "^3.6.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  }
+}
