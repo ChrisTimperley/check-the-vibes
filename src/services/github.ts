@@ -19,9 +19,14 @@ export class GitHubService {
     const pullRequests: PullRequestAnalysis[] = [];
     let page = 1;
     const perPage = 100;
+    let totalProcessed = 0;
 
+    console.log(`🔍 Fetching pull requests from ${owner}/${repo}...`);
+    
     let hasMore = true;
     while (hasMore) {
+      console.log(`📄 Fetching page ${page} (up to ${perPage} PRs per page)...`);
+      
       const response = await this.octokit.pulls.list({
         owner,
         repo,
@@ -33,15 +38,19 @@ export class GitHubService {
       });
 
       if (response.data.length === 0) {
+        console.log('📄 No more pull requests found');
         hasMore = false;
         break;
       }
+
+      console.log(`📋 Processing ${response.data.length} pull requests from page ${page}...`);
 
       for (const pr of response.data) {
         const createdAt = new Date(pr.created_at);
 
         // Stop if we've gone past our date range
         if (createdAt < since) {
+          console.log(`⏹️  Reached PRs older than ${since.toISOString().split('T')[0]}, stopping scan`);
           return pullRequests;
         }
 
@@ -50,18 +59,25 @@ export class GitHubService {
           continue;
         }
 
+        totalProcessed++;
+        console.log(`🔄 Analyzing PR #${pr.number}: "${pr.title}" (${totalProcessed} processed so far)`);
+        
         const analysis = await this.analyzePullRequest(owner, repo, pr.number);
         pullRequests.push(analysis);
       }
 
       // If we got fewer results than requested, we're on the last page
       if (response.data.length < perPage) {
+        console.log(`📄 Reached final page (page ${page})`);
         hasMore = false;
         break;
       }
+      
+      console.log(`📄 Completed page ${page}, moving to next page...`);
       page++;
     }
 
+    console.log(`🎉 Completed scanning! Found ${pullRequests.length} pull requests in date range`);
     return pullRequests;
   }
 
@@ -70,6 +86,8 @@ export class GitHubService {
     repo: string,
     prNumber: number
   ): Promise<PullRequestAnalysis> {
+    console.log(`  📊 Fetching detailed data for PR #${prNumber}...`);
+    
     const [prData, files, commits, reviews, comments, checkRuns] =
       await Promise.all([
         this.octokit.pulls.get({ owner, repo, pull_number: prNumber }),
@@ -83,6 +101,8 @@ export class GitHubService {
         }),
         this.getCheckRuns(owner, repo, prNumber),
       ]);
+
+    console.log(`  ✅ Completed analysis for PR #${prNumber}`);
 
     const pr = prData.data;
     const totalAdditions = files.data.reduce(
