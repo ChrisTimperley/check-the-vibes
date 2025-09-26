@@ -5,6 +5,7 @@ A simple GitHub repo scanner that assesses for SWE best practices and good teamw
 ## Features
 
 - 📊 **PR Analysis**: Analyze pull requests for lines changed, files modified, commit count, and review activity
+- 🔗 **Issue Linking Detection**: Track whether PRs are linked to issues via closing keywords
 - 🔍 **Date Range Filtering**: Scan PRs within specific date ranges
 - 📈 **CI/CD Monitoring**: Track continuous integration success rates
 - 📝 **YAML Reports**: Generate comprehensive reports in YAML format
@@ -143,6 +144,7 @@ pullRequests:
     hasReviews: true
     hasComments: true
     ciStatus: success
+    linkedIssue: 5678
     url: https://github.com/microsoft/vscode/pull/1234
 summary:
   averageLinesChanged: 175

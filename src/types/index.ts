@@ -18,6 +18,7 @@ export interface PullRequestAnalysis {
   hasReviews: boolean;
   hasComments: boolean;
   ciStatus?: 'success' | 'failure' | 'pending' | 'unknown';
+  linkedIssue: number | null;
   url: string;
 }
 
