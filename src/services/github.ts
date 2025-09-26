@@ -225,7 +225,8 @@ export class GitHubService {
         number: prNumber,
       });
 
-      const closingIssues = result.repository.pullRequest.closingIssuesReferences.nodes;
+      const closingIssues =
+        result.repository.pullRequest.closingIssuesReferences.nodes;
       return closingIssues.length > 0 ? closingIssues[0].number : null;
     } catch (error) {
       console.warn(`Failed to get linked issues for PR ${prNumber}:`, error);
