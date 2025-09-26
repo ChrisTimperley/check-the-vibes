@@ -60,37 +60,3 @@ export function formatDuration(start: Date, end: Date): string {
     return `${hours}h ${minutes}m`;
   }
 }
-
-/**
- * Extracts the first linked issue number from a PR body.
- * Supports various formats like "closes #123", "fixes #456", "resolves #789", 
- * "closes https://github.com/owner/repo/issues/123", etc.
- * 
- * @param body The PR body text
- * @returns The issue number if found, null otherwise
- */
-export function extractLinkedIssue(body: string | null): number | null {
-  if (!body) {
-    return null;
-  }
-
-  // Pattern to match various issue linking formats:
-  // - "closes #123", "fixes #456", "resolves #789" (case insensitive)
-  // - "closes https://github.com/owner/repo/issues/123"
-  // - "close #123", "fix #456", "resolve #789" (singular forms)
-  const patterns = [
-    // Match "closes/fixes/resolves #number" format
-    /(?:closes?|fixes?|resolves?)\s+#(\d+)/i,
-    // Match "closes/fixes/resolves https://github.com/.../issues/number" format
-    /(?:closes?|fixes?|resolves?)\s+https:\/\/github\.com\/[^/]+\/[^/]+\/issues\/(\d+)/i
-  ];
-
-  for (const pattern of patterns) {
-    const match = body.match(pattern);
-    if (match && match[1]) {
-      return parseInt(match[1], 10);
-    }
-  }
-
-  return null;
-}

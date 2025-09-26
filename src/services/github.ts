@@ -1,6 +1,5 @@
 import { Octokit } from '@octokit/rest';
 import { PullRequestAnalysis } from '../types';
-import { extractLinkedIssue } from '../utils/helpers';
 
 export class GitHubService {
   private octokit: Octokit;
@@ -99,7 +98,7 @@ export class GitHubService {
   ): Promise<PullRequestAnalysis> {
     console.log(`  📊 Fetching detailed data for PR #${prNumber}...`);
 
-    const [prData, files, commits, reviews, comments, checkRuns] =
+    const [prData, files, commits, reviews, comments, checkRuns, linkedIssue] =
       await Promise.all([
         this.octokit.pulls.get({ owner, repo, pull_number: prNumber }),
         this.octokit.pulls.listFiles({ owner, repo, pull_number: prNumber }),
@@ -111,6 +110,7 @@ export class GitHubService {
           issue_number: prNumber,
         }),
         this.getCheckRuns(owner, repo, prNumber),
+        this.getLinkedIssues(owner, repo, prNumber),
       ]);
 
     console.log(`  ✅ Completed analysis for PR #${prNumber}`);
@@ -169,7 +169,7 @@ export class GitHubService {
       hasReviews: reviews.data.length > 0,
       hasComments: comments.data.length > 0,
       ciStatus,
-      linkedIssue: extractLinkedIssue(pr.body),
+      linkedIssue,
       url: pr.html_url,
     };
   }
@@ -196,6 +196,40 @@ export class GitHubService {
     } catch {
       console.warn(`Failed to get check runs for PR ${prNumber}`);
       return [];
+    }
+  }
+
+  private async getLinkedIssues(
+    owner: string,
+    repo: string,
+    prNumber: number
+  ): Promise<number | null> {
+    try {
+      const query = `
+        query($owner: String!, $repo: String!, $number: Int!) {
+          repository(owner: $owner, name: $repo) {
+            pullRequest(number: $number) {
+              closingIssuesReferences(first: 1) {
+                nodes {
+                  number
+                }
+              }
+            }
+          }
+        }
+      `;
+
+      const result: any = await this.octokit.graphql(query, {
+        owner,
+        repo,
+        number: prNumber,
+      });
+
+      const closingIssues = result.repository.pullRequest.closingIssuesReferences.nodes;
+      return closingIssues.length > 0 ? closingIssues[0].number : null;
+    } catch (error) {
+      console.warn(`Failed to get linked issues for PR ${prNumber}:`, error);
+      return null;
     }
   }
 
