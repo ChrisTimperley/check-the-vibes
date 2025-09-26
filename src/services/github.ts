@@ -1,5 +1,6 @@
 import { Octokit } from '@octokit/rest';
 import { PullRequestAnalysis } from '../types';
+import { extractLinkedIssue } from '../utils/helpers';
 
 export class GitHubService {
   private octokit: Octokit;
@@ -168,6 +169,7 @@ export class GitHubService {
       hasReviews: reviews.data.length > 0,
       hasComments: comments.data.length > 0,
       ciStatus,
+      linkedIssue: extractLinkedIssue(pr.body),
       url: pr.html_url,
     };
   }
