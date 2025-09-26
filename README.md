@@ -13,6 +13,7 @@ A simple GitHub repo scanner that assesses for SWE best practices and good teamw
 ## Documentation
 
 - 📋 **[Design Document](docs/DESIGN.md)** - Comprehensive design specification for the TA Dashboard MVP, including architecture, metrics, and implementation details
+- 🔌 **[API Specification](docs/api.yaml)** - OpenAPI 3.1 specification for the REST API endpoints
 
 ## Quick Start
 
