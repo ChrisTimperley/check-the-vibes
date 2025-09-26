@@ -10,6 +10,10 @@ A simple GitHub repo scanner that assesses for SWE best practices and good teamw
 - 📝 **YAML Reports**: Generate comprehensive reports in YAML format
 - 🐳 **DevContainer Ready**: Full development environment setup with VS Code
 
+## Documentation
+
+- 📋 **[Design Document](docs/DESIGN.md)** - Comprehensive design specification for the TA Dashboard MVP, including architecture, metrics, and implementation details
+
 ## Quick Start
 
 ### Prerequisites
