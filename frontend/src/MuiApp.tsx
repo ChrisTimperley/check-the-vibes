@@ -515,6 +515,583 @@ function App() {
           </CardContent>
         </Card>
 
+        {/* Repository Hygiene & Best Practices Section */}
+        <Card sx={{ mb: 4 }}>
+          <CardContent>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: 3,
+              }}
+            >
+              <Box>
+                <Typography variant="h5" component="h2" gutterBottom>
+                  Repository Hygiene & Best Practices ✨
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {(() => {
+                    // Calculate passed checks
+                    const checks = [
+                      data.hygiene.branch_protection.present,
+                      data.hygiene.codeowners,
+                      data.hygiene.security_policy,
+                      data.hygiene.vulnerability_alerts,
+                      data.hygiene.secret_scanning,
+                      data.hygiene.dependency_scanning,
+                      data.hygiene.readme_quality.has_description &&
+                        data.hygiene.readme_quality.has_setup &&
+                        data.hygiene.readme_quality.has_test,
+                      data.hygiene.readme_quality.has_badges &&
+                        data.hygiene.readme_quality.badges.length >= 3,
+                      data.hygiene.contributing,
+                      data.hygiene.code_of_conduct,
+                      data.hygiene.license,
+                      data.hygiene.changelog,
+                      data.hygiene.issue_templates,
+                      data.hygiene.pr_template,
+                      data.hygiene.wiki_present,
+                      data.hygiene.ci_present,
+                      data.hygiene.test_coverage.present &&
+                        data.hygiene.test_coverage.percentage >= 80,
+                      data.hygiene.linting.present,
+                      data.hygiene.formatting.present,
+                      data.hygiene.precommit,
+                      data.hygiene.editorconfig,
+                      data.hygiene.gitignore_quality.present &&
+                        data.hygiene.gitignore_quality.comprehensive,
+                      data.hygiene.dependabot,
+                      data.hygiene.security_advisories,
+                      data.hygiene.package_lock,
+                      data.hygiene.outdated_dependencies.count <= 5 &&
+                        data.hygiene.outdated_dependencies.critical === 0,
+                      data.hygiene.releases_recent,
+                      data.hygiene.semantic_versioning,
+                      data.hygiene.release_notes,
+                      data.hygiene.tags_present,
+                      data.hygiene.conventional_commits_rate >= 0.7,
+                      data.hygiene.pr_size_check.large_pr_rate <= 0.3,
+                      data.hygiene.review_coverage >= 0.8,
+                      data.hygiene.merge_strategy.squash_enabled,
+                      data.hygiene.discussions_enabled,
+                      data.hygiene.projects_used,
+                      data.hygiene.issue_response_time.sla_met,
+                      data.hygiene.stale_issue_management,
+                    ];
+                    const passed = checks.filter(Boolean).length;
+                    const total = checks.length;
+                    const percentage = Math.round((passed / total) * 100);
+                    return `${passed}/${total} checks passed (${percentage}%)`;
+                  })()}
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* Security Section */}
+            <Box sx={{ mb: 4 }}>
+              <Typography
+                variant="h6"
+                component="h3"
+                gutterBottom
+                sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+              >
+                🔒 Repository Security
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+                <Card
+                  variant="outlined"
+                  sx={{
+                    p: 2,
+                    minWidth: 280,
+                    bgcolor: data.hygiene.branch_protection.present
+                      ? 'success.light'
+                      : 'error.light',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      mb: 1,
+                    }}
+                  >
+                    {data.hygiene.branch_protection.present ? (
+                      <CheckCircle color="success" />
+                    ) : (
+                      <BugReport color="error" />
+                    )}
+                    <Typography variant="subtitle2" fontWeight="bold">
+                      Branch Protection
+                    </Typography>
+                    <Chip label="High" size="small" color="error" />
+                  </Box>
+                  <Typography variant="body2">
+                    {data.hygiene.branch_protection.required_reviews} required
+                    reviews, Status checks:{' '}
+                    {data.hygiene.branch_protection.status_checks_required
+                      ? 'Yes'
+                      : 'No'}
+                  </Typography>
+                </Card>
+
+                <Card
+                  variant="outlined"
+                  sx={{
+                    p: 2,
+                    minWidth: 280,
+                    bgcolor: data.hygiene.codeowners
+                      ? 'success.light'
+                      : 'warning.light',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      mb: 1,
+                    }}
+                  >
+                    {data.hygiene.codeowners ? (
+                      <CheckCircle color="success" />
+                    ) : (
+                      <Schedule color="warning" />
+                    )}
+                    <Typography variant="subtitle2" fontWeight="bold">
+                      Code Owners
+                    </Typography>
+                    <Chip label="Medium" size="small" color="warning" />
+                  </Box>
+                  <Typography variant="body2">
+                    CODEOWNERS file for mandatory code review assignment
+                  </Typography>
+                </Card>
+
+                <Card
+                  variant="outlined"
+                  sx={{
+                    p: 2,
+                    minWidth: 280,
+                    bgcolor: data.hygiene.vulnerability_alerts
+                      ? 'success.light'
+                      : 'error.light',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      mb: 1,
+                    }}
+                  >
+                    {data.hygiene.vulnerability_alerts ? (
+                      <CheckCircle color="success" />
+                    ) : (
+                      <BugReport color="error" />
+                    )}
+                    <Typography variant="subtitle2" fontWeight="bold">
+                      Vulnerability Alerts
+                    </Typography>
+                    <Chip label="High" size="small" color="error" />
+                  </Box>
+                  <Typography variant="body2">
+                    GitHub vulnerability alerts enabled for dependencies
+                  </Typography>
+                </Card>
+
+                <Card
+                  variant="outlined"
+                  sx={{
+                    p: 2,
+                    minWidth: 280,
+                    bgcolor: data.hygiene.secret_scanning
+                      ? 'success.light'
+                      : 'error.light',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      mb: 1,
+                    }}
+                  >
+                    {data.hygiene.secret_scanning ? (
+                      <CheckCircle color="success" />
+                    ) : (
+                      <BugReport color="error" />
+                    )}
+                    <Typography variant="subtitle2" fontWeight="bold">
+                      Secret Scanning
+                    </Typography>
+                    <Chip label="High" size="small" color="error" />
+                  </Box>
+                  <Typography variant="body2">
+                    GitHub secret scanning to prevent credential leaks
+                  </Typography>
+                </Card>
+              </Box>
+            </Box>
+
+            {/* Code Quality Section */}
+            <Box sx={{ mb: 4 }}>
+              <Typography
+                variant="h6"
+                component="h3"
+                gutterBottom
+                sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+              >
+                ⚙️ Code Quality
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+                <Card
+                  variant="outlined"
+                  sx={{
+                    p: 2,
+                    minWidth: 280,
+                    bgcolor: data.hygiene.ci_present
+                      ? 'success.light'
+                      : 'error.light',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      mb: 1,
+                    }}
+                  >
+                    {data.hygiene.ci_present ? (
+                      <CheckCircle color="success" />
+                    ) : (
+                      <BugReport color="error" />
+                    )}
+                    <Typography variant="subtitle2" fontWeight="bold">
+                      CI/CD Present
+                    </Typography>
+                    <Chip label="High" size="small" color="error" />
+                  </Box>
+                  <Typography variant="body2">
+                    Continuous integration workflows configured
+                  </Typography>
+                </Card>
+
+                <Card
+                  variant="outlined"
+                  sx={{
+                    p: 2,
+                    minWidth: 280,
+                    bgcolor:
+                      data.hygiene.test_coverage.present &&
+                      data.hygiene.test_coverage.percentage >= 80
+                        ? 'success.light'
+                        : 'warning.light',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      mb: 1,
+                    }}
+                  >
+                    {data.hygiene.test_coverage.present &&
+                    data.hygiene.test_coverage.percentage >= 80 ? (
+                      <CheckCircle color="success" />
+                    ) : (
+                      <Schedule color="warning" />
+                    )}
+                    <Typography variant="subtitle2" fontWeight="bold">
+                      Test Coverage
+                    </Typography>
+                    <Chip label="High" size="small" color="error" />
+                  </Box>
+                  <Typography variant="body2">
+                    {data.hygiene.test_coverage.percentage}% coverage{' '}
+                    {data.hygiene.test_coverage.present
+                      ? '(tracked)'
+                      : '(not tracked)'}
+                  </Typography>
+                </Card>
+
+                <Card
+                  variant="outlined"
+                  sx={{
+                    p: 2,
+                    minWidth: 280,
+                    bgcolor: data.hygiene.linting.present
+                      ? 'success.light'
+                      : 'warning.light',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      mb: 1,
+                    }}
+                  >
+                    {data.hygiene.linting.present ? (
+                      <CheckCircle color="success" />
+                    ) : (
+                      <Schedule color="warning" />
+                    )}
+                    <Typography variant="subtitle2" fontWeight="bold">
+                      Code Linting
+                    </Typography>
+                    <Chip label="Medium" size="small" color="warning" />
+                  </Box>
+                  <Typography variant="body2">
+                    Tools: {data.hygiene.linting.tools.join(', ')}
+                  </Typography>
+                </Card>
+              </Box>
+            </Box>
+
+            {/* Development Practices Section */}
+            <Box sx={{ mb: 4 }}>
+              <Typography
+                variant="h6"
+                component="h3"
+                gutterBottom
+                sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+              >
+                🚀 Development Practices
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+                <Card
+                  variant="outlined"
+                  sx={{
+                    p: 2,
+                    minWidth: 280,
+                    bgcolor:
+                      data.hygiene.conventional_commits_rate >= 0.7
+                        ? 'success.light'
+                        : 'warning.light',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      mb: 1,
+                    }}
+                  >
+                    {data.hygiene.conventional_commits_rate >= 0.7 ? (
+                      <CheckCircle color="success" />
+                    ) : (
+                      <Schedule color="warning" />
+                    )}
+                    <Typography variant="subtitle2" fontWeight="bold">
+                      Conventional Commits
+                    </Typography>
+                    <Chip label="Medium" size="small" color="warning" />
+                  </Box>
+                  <Typography variant="body2">
+                    {Math.round(data.hygiene.conventional_commits_rate * 100)}%
+                    follow convention
+                  </Typography>
+                </Card>
+
+                <Card
+                  variant="outlined"
+                  sx={{
+                    p: 2,
+                    minWidth: 280,
+                    bgcolor:
+                      data.hygiene.review_coverage >= 0.8
+                        ? 'success.light'
+                        : 'error.light',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      mb: 1,
+                    }}
+                  >
+                    {data.hygiene.review_coverage >= 0.8 ? (
+                      <CheckCircle color="success" />
+                    ) : (
+                      <BugReport color="error" />
+                    )}
+                    <Typography variant="subtitle2" fontWeight="bold">
+                      Review Coverage
+                    </Typography>
+                    <Chip label="High" size="small" color="error" />
+                  </Box>
+                  <Typography variant="body2">
+                    {Math.round(data.hygiene.review_coverage * 100)}% of PRs
+                    reviewed
+                  </Typography>
+                </Card>
+
+                <Card
+                  variant="outlined"
+                  sx={{
+                    p: 2,
+                    minWidth: 280,
+                    bgcolor:
+                      data.hygiene.pr_size_check.large_pr_rate <= 0.3
+                        ? 'success.light'
+                        : 'warning.light',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      mb: 1,
+                    }}
+                  >
+                    {data.hygiene.pr_size_check.large_pr_rate <= 0.3 ? (
+                      <CheckCircle color="success" />
+                    ) : (
+                      <Schedule color="warning" />
+                    )}
+                    <Typography variant="subtitle2" fontWeight="bold">
+                      PR Size Management
+                    </Typography>
+                    <Chip label="Medium" size="small" color="warning" />
+                  </Box>
+                  <Typography variant="body2">
+                    Avg size: {data.hygiene.pr_size_check.average_size},{' '}
+                    {Math.round(data.hygiene.pr_size_check.large_pr_rate * 100)}
+                    % large
+                  </Typography>
+                </Card>
+              </Box>
+            </Box>
+
+            {/* Documentation Section */}
+            <Box sx={{ mb: 3 }}>
+              <Typography
+                variant="h6"
+                component="h3"
+                gutterBottom
+                sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+              >
+                📚 Documentation
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                <Card
+                  variant="outlined"
+                  sx={{
+                    p: 2,
+                    minWidth: 280,
+                    bgcolor:
+                      data.hygiene.readme_quality.has_description &&
+                      data.hygiene.readme_quality.has_setup
+                        ? 'success.light'
+                        : 'error.light',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      mb: 1,
+                    }}
+                  >
+                    {data.hygiene.readme_quality.has_description &&
+                    data.hygiene.readme_quality.has_setup ? (
+                      <CheckCircle color="success" />
+                    ) : (
+                      <BugReport color="error" />
+                    )}
+                    <Typography variant="subtitle2" fontWeight="bold">
+                      Comprehensive README
+                    </Typography>
+                    <Chip label="High" size="small" color="error" />
+                  </Box>
+                  <Typography variant="body2">
+                    {data.hygiene.readme_quality.word_count} words, Setup &
+                    Tests documented
+                  </Typography>
+                </Card>
+
+                <Card
+                  variant="outlined"
+                  sx={{
+                    p: 2,
+                    minWidth: 280,
+                    bgcolor: data.hygiene.contributing
+                      ? 'success.light'
+                      : 'warning.light',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      mb: 1,
+                    }}
+                  >
+                    {data.hygiene.contributing ? (
+                      <CheckCircle color="success" />
+                    ) : (
+                      <Schedule color="warning" />
+                    )}
+                    <Typography variant="subtitle2" fontWeight="bold">
+                      Contributing Guide
+                    </Typography>
+                    <Chip label="Medium" size="small" color="warning" />
+                  </Box>
+                  <Typography variant="body2">
+                    CONTRIBUTING.md with development guidelines
+                  </Typography>
+                </Card>
+
+                <Card
+                  variant="outlined"
+                  sx={{
+                    p: 2,
+                    minWidth: 280,
+                    bgcolor: data.hygiene.license
+                      ? 'success.light'
+                      : 'error.light',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      mb: 1,
+                    }}
+                  >
+                    {data.hygiene.license ? (
+                      <CheckCircle color="success" />
+                    ) : (
+                      <BugReport color="error" />
+                    )}
+                    <Typography variant="subtitle2" fontWeight="bold">
+                      License
+                    </Typography>
+                    <Chip label="High" size="small" color="error" />
+                  </Box>
+                  <Typography variant="body2">
+                    License file present for legal clarity
+                  </Typography>
+                </Card>
+              </Box>
+            </Box>
+          </CardContent>
+        </Card>
+
         {/* Footer */}
         <Box
           sx={{

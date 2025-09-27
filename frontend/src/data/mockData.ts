@@ -228,28 +228,92 @@ export const mockAnalysisData: AnalysisReport = {
     },
   ],
   hygiene: {
+    // Repository Security
     branch_protection: {
       present: true,
-      required_reviews: 1,
+      required_reviews: 2,
       status_checks_required: true,
+      dismiss_stale_reviews: true,
+      require_code_owner_reviews: true,
     },
     codeowners: true,
-    ci_present: true,
-    issue_templates: true,
-    pr_template: true,
-    contributing: true,
-    code_of_conduct: true,
-    security: false,
-    license: true,
+    security_policy: true,
+    vulnerability_alerts: true,
+    secret_scanning: false,
+    dependency_scanning: true,
+
+    // Documentation
     readme_quality: {
       has_setup: true,
       has_test: true,
-      badges: ['build', 'coverage'],
+      has_description: true,
+      has_badges: true,
+      badges: ['build', 'coverage', 'license', 'version'],
+      word_count: 1247,
+    },
+    contributing: true,
+    code_of_conduct: true,
+    license: true,
+    changelog: false,
+    issue_templates: true,
+    pr_template: true,
+    wiki_present: false,
+
+    // Code Quality
+    ci_present: true,
+    test_coverage: {
+      present: true,
+      percentage: 87.3,
+    },
+    linting: {
+      present: true,
+      tools: ['ESLint', 'Prettier', 'TypeScript'],
+    },
+    formatting: {
+      present: true,
+      tools: ['Prettier', 'EditorConfig'],
     },
     precommit: true,
     editorconfig: true,
-    releases_recent: false,
-    conventional_commits_rate: 0.62,
+    gitignore_quality: {
+      present: true,
+      comprehensive: true,
+    },
+
+    // Dependency Management
     dependabot: true,
+    security_advisories: false,
+    package_lock: true,
+    outdated_dependencies: {
+      count: 7,
+      critical: 1,
+    },
+
+    // Release Management
+    releases_recent: true,
+    semantic_versioning: true,
+    release_notes: false,
+    tags_present: true,
+
+    // Development Practices
+    conventional_commits_rate: 0.78,
+    pr_size_check: {
+      average_size: 'M',
+      large_pr_rate: 0.23,
+    },
+    review_coverage: 0.89,
+    merge_strategy: {
+      squash_enabled: true,
+      merge_commits_allowed: false,
+    },
+
+    // Community Health
+    discussions_enabled: false,
+    projects_used: true,
+    issue_response_time: {
+      average_hours: 18.5,
+      sla_met: true,
+    },
+    stale_issue_management: true,
   },
 };
