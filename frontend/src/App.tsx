@@ -7,7 +7,6 @@ import { IssuesTable } from './components/IssuesTable';
 import { ProjectBoard } from './components/ProjectBoard';
 import { BestPractices } from './components/BestPractices';
 import { mockAnalysisData } from './data/mockData';
-import './index.css';
 
 function App() {
   const [data] = useState(mockAnalysisData);
@@ -23,7 +22,11 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-red-500">
+      <h1 className="text-4xl font-bold text-white p-8">TAILWIND TEST</h1>
+      <div className="bg-blue-500 p-4 m-4">
+        <p className="text-white">If you see red background and this blue box, Tailwind is working</p>
+      </div>
       <Header
         repo={data.repo}
         onRefresh={handleRefresh}
