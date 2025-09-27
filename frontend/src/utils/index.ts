@@ -9,7 +9,7 @@ export function formatDate(dateString: string): string {
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
-    minute: '2-digit'
+    minute: '2-digit',
   });
 }
 
@@ -24,7 +24,9 @@ export function formatDuration(minutes: number | null): string {
   const remainingMinutes = minutes % 60;
 
   if (hours < 24) {
-    return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
+    return remainingMinutes > 0
+      ? `${hours}h ${remainingMinutes}m`
+      : `${hours}h`;
   }
 
   const days = Math.floor(hours / 24);

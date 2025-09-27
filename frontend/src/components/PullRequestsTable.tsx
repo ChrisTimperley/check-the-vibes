@@ -76,7 +76,12 @@ export function PullRequestsTable({ pullRequests }: PullRequestsTableProps) {
                   {pr.author}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={cn('px-2 py-1 rounded-full text-xs font-medium', getStatusColor(pr.status))}>
+                  <span
+                    className={cn(
+                      'px-2 py-1 rounded-full text-xs font-medium',
+                      getStatusColor(pr.status)
+                    )}
+                  >
                     {pr.status}
                   </span>
                   {pr.is_draft && (
@@ -91,7 +96,12 @@ export function PullRequestsTable({ pullRequests }: PullRequestsTableProps) {
                   )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={cn('px-2 py-1 rounded text-xs font-medium', getSizeBucketColor(pr.size_bucket))}>
+                  <span
+                    className={cn(
+                      'px-2 py-1 rounded text-xs font-medium',
+                      getSizeBucketColor(pr.size_bucket)
+                    )}
+                  >
                     {pr.size_bucket}
                   </span>
                   <div className="text-xs text-gray-500 mt-1">
@@ -99,8 +109,12 @@ export function PullRequestsTable({ pullRequests }: PullRequestsTableProps) {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={cn('px-2 py-1 rounded-full text-xs font-medium',
-                    pr.reviewed ? 'status-green' : 'status-red')}>
+                  <span
+                    className={cn(
+                      'px-2 py-1 rounded-full text-xs font-medium',
+                      pr.reviewed ? 'status-green' : 'status-red'
+                    )}
+                  >
                     {pr.reviewed ? 'Yes' : 'No'}
                   </span>
                   {pr.reviewed && (
@@ -110,18 +124,29 @@ export function PullRequestsTable({ pullRequests }: PullRequestsTableProps) {
                   )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={cn('px-2 py-1 rounded-full text-xs font-medium',
-                    pr.linked_issues.length > 0 ? 'status-green' : 'status-red')}>
+                  <span
+                    className={cn(
+                      'px-2 py-1 rounded-full text-xs font-medium',
+                      pr.linked_issues.length > 0
+                        ? 'status-green'
+                        : 'status-red'
+                    )}
+                  >
                     {pr.linked_issues.length > 0 ? 'Yes' : 'No'}
                   </span>
                   {pr.linked_issues.length > 0 && (
                     <div className="text-xs text-gray-500 mt-1">
-                      {pr.linked_issues.map(issue => `#${issue}`).join(', ')}
+                      {pr.linked_issues.map((issue) => `#${issue}`).join(', ')}
                     </div>
                   )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={cn('px-2 py-1 rounded-full text-xs font-medium', getStatusColor(pr.ci_status))}>
+                  <span
+                    className={cn(
+                      'px-2 py-1 rounded-full text-xs font-medium',
+                      getStatusColor(pr.ci_status)
+                    )}
+                  >
                     {pr.ci_status === 'none' ? 'N/A' : pr.ci_status}
                   </span>
                 </td>

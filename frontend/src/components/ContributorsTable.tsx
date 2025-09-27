@@ -7,7 +7,10 @@ interface ContributorsTableProps {
 
 export function ContributorsTable({ contributors }: ContributorsTableProps) {
   // Calculate total commits for bus factor
-  const totalCommits = contributors.reduce((sum, contributor) => sum + contributor.commits, 0);
+  const totalCommits = contributors.reduce(
+    (sum, contributor) => sum + contributor.commits,
+    0
+  );
 
   return (
     <div className="card">
@@ -51,7 +54,10 @@ export function ContributorsTable({ contributors }: ContributorsTableProps) {
             {contributors
               .sort((a, b) => b.commits - a.commits)
               .map((contributor) => {
-                const commitPercentage = totalCommits > 0 ? (contributor.commits / totalCommits * 100) : 0;
+                const commitPercentage =
+                  totalCommits > 0
+                    ? (contributor.commits / totalCommits) * 100
+                    : 0;
                 const isBusFactorRisk = commitPercentage > 70;
 
                 return (
@@ -67,11 +73,15 @@ export function ContributorsTable({ contributors }: ContributorsTableProps) {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{contributor.commits}</div>
+                      <div className="text-sm text-gray-900">
+                        {contributor.commits}
+                      </div>
                       <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
                         <div
                           className="bg-blue-600 h-1.5 rounded-full"
-                          style={{ width: `${Math.min(commitPercentage, 100)}%` }}
+                          style={{
+                            width: `${Math.min(commitPercentage, 100)}%`,
+                          }}
                         ></div>
                       </div>
                     </td>
@@ -85,18 +95,22 @@ export function ContributorsTable({ contributors }: ContributorsTableProps) {
                       {contributor.issues}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        contributor.direct_pushes_default > 0
-                          ? 'bg-red-100 text-red-800'
-                          : 'bg-green-100 text-green-800'
-                      }`}>
+                      <span
+                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          contributor.direct_pushes_default > 0
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-green-100 text-green-800'
+                        }`}
+                      >
                         {contributor.direct_pushes_default}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`text-sm font-medium ${
-                        isBusFactorRisk ? 'text-red-600' : 'text-gray-900'
-                      }`}>
+                      <span
+                        className={`text-sm font-medium ${
+                          isBusFactorRisk ? 'text-red-600' : 'text-gray-900'
+                        }`}
+                      >
                         {commitPercentage.toFixed(1)}%
                       </span>
                     </td>
@@ -107,14 +121,17 @@ export function ContributorsTable({ contributors }: ContributorsTableProps) {
         </table>
       </div>
 
-      {contributors.some(c => (c.commits / totalCommits * 100) > 70) && (
+      {contributors.some((c) => (c.commits / totalCommits) * 100 > 70) && (
         <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
           <div className="flex">
             <AlertCircle className="h-5 w-5 text-red-400" />
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Bus Factor Warning</h3>
+              <h3 className="text-sm font-medium text-red-800">
+                Bus Factor Warning
+              </h3>
               <div className="mt-1 text-sm text-red-700">
-                One contributor has made more than 70% of commits, creating a potential bus factor risk.
+                One contributor has made more than 70% of commits, creating a
+                potential bus factor risk.
               </div>
             </div>
           </div>

@@ -1,4 +1,11 @@
-import { Users, GitPullRequest, AlertTriangle, Clock, CheckCircle, Activity } from 'lucide-react';
+import {
+  Users,
+  GitPullRequest,
+  AlertTriangle,
+  Clock,
+  CheckCircle,
+  Activity,
+} from 'lucide-react';
 import { AnalysisReport } from '../types';
 
 interface SummaryCardsProps {
@@ -15,7 +22,7 @@ export function SummaryCards({ data }: SummaryCardsProps) {
       icon: Users,
       description: 'Active contributors',
       color: 'text-blue-600',
-      bgColor: 'bg-blue-50'
+      bgColor: 'bg-blue-50',
     },
     {
       title: 'PRs Opened',
@@ -23,7 +30,7 @@ export function SummaryCards({ data }: SummaryCardsProps) {
       icon: GitPullRequest,
       description: 'Pull requests opened',
       color: 'text-green-600',
-      bgColor: 'bg-green-50'
+      bgColor: 'bg-green-50',
     },
     {
       title: 'Issues',
@@ -31,15 +38,25 @@ export function SummaryCards({ data }: SummaryCardsProps) {
       icon: AlertTriangle,
       description: 'Opened/Closed',
       color: 'text-orange-600',
-      bgColor: 'bg-orange-50'
+      bgColor: 'bg-orange-50',
     },
     {
       title: 'PRs Reviewed',
       value: `${Math.round(summary.pct_prs_reviewed * 100)}%`,
       icon: CheckCircle,
       description: 'Percentage reviewed',
-      color: summary.pct_prs_reviewed >= 0.8 ? 'text-green-600' : summary.pct_prs_reviewed >= 0.6 ? 'text-yellow-600' : 'text-red-600',
-      bgColor: summary.pct_prs_reviewed >= 0.8 ? 'bg-green-50' : summary.pct_prs_reviewed >= 0.6 ? 'bg-yellow-50' : 'bg-red-50'
+      color:
+        summary.pct_prs_reviewed >= 0.8
+          ? 'text-green-600'
+          : summary.pct_prs_reviewed >= 0.6
+            ? 'text-yellow-600'
+            : 'text-red-600',
+      bgColor:
+        summary.pct_prs_reviewed >= 0.8
+          ? 'bg-green-50'
+          : summary.pct_prs_reviewed >= 0.6
+            ? 'bg-yellow-50'
+            : 'bg-red-50',
     },
     {
       title: 'Cycle Time',
@@ -47,16 +64,26 @@ export function SummaryCards({ data }: SummaryCardsProps) {
       icon: Clock,
       description: 'Median PR cycle time',
       color: 'text-purple-600',
-      bgColor: 'bg-purple-50'
+      bgColor: 'bg-purple-50',
     },
     {
       title: 'Stale Items',
       value: summary.stale_items,
       icon: Activity,
       description: 'Items needing attention',
-      color: summary.stale_items > 5 ? 'text-red-600' : summary.stale_items > 2 ? 'text-yellow-600' : 'text-green-600',
-      bgColor: summary.stale_items > 5 ? 'bg-red-50' : summary.stale_items > 2 ? 'bg-yellow-50' : 'bg-green-50'
-    }
+      color:
+        summary.stale_items > 5
+          ? 'text-red-600'
+          : summary.stale_items > 2
+            ? 'text-yellow-600'
+            : 'text-green-600',
+      bgColor:
+        summary.stale_items > 5
+          ? 'bg-red-50'
+          : summary.stale_items > 2
+            ? 'bg-yellow-50'
+            : 'bg-green-50',
+    },
   ];
 
   return (
@@ -64,13 +91,18 @@ export function SummaryCards({ data }: SummaryCardsProps) {
       {cards.map((card) => {
         const Icon = card.icon;
         return (
-          <div key={card.title} className="card hover:shadow-md transition-shadow cursor-pointer">
+          <div
+            key={card.title}
+            className="card hover:shadow-md transition-shadow cursor-pointer"
+          >
             <div className="flex items-center">
               <div className={`${card.bgColor} p-3 rounded-lg`}>
                 <Icon className={`h-6 w-6 ${card.color}`} />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">{card.title}</p>
+                <p className="text-sm font-medium text-gray-600">
+                  {card.title}
+                </p>
                 <p className="text-2xl font-bold text-gray-900">{card.value}</p>
                 <p className="text-xs text-gray-500">{card.description}</p>
               </div>

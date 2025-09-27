@@ -57,10 +57,14 @@ function App() {
       <footer className="bg-white border-t border-gray-200 px-6 py-4 mt-8">
         <div className="max-w-7xl mx-auto flex items-center justify-between text-sm text-gray-500">
           <div>
-            Analysis window: {new Date(data.window.from).toLocaleDateString()} - {new Date(data.window.to).toLocaleDateString()}
+            Analysis window: {new Date(data.window.from).toLocaleDateString()} -{' '}
+            {new Date(data.window.to).toLocaleDateString()}
           </div>
           <div>
-            Overall Score: <span className="font-medium text-gray-700">{data.scores.overall}/100</span>
+            Overall Score:{' '}
+            <span className="font-medium text-gray-700">
+              {data.scores.overall}/100
+            </span>
           </div>
         </div>
       </footer>

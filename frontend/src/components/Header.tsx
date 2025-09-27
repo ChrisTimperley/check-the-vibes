@@ -13,7 +13,8 @@ export function Header({ repo, onRefresh, onExport }: HeaderProps) {
         <div className="flex items-center space-x-4">
           <h1 className="text-2xl font-bold text-gray-900">Check the Vibes</h1>
           <div className="text-sm text-gray-500">
-            Repository: <span className="font-medium text-gray-700">{repo}</span>
+            Repository:{' '}
+            <span className="font-medium text-gray-700">{repo}</span>
           </div>
         </div>
 

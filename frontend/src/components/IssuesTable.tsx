@@ -73,8 +73,12 @@ export function IssuesTable({ issues }: IssuesTableProps) {
                   {issue.author}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={cn('px-2 py-1 rounded-full text-xs font-medium',
-                    issue.closed_at ? 'status-green' : 'status-yellow')}>
+                  <span
+                    className={cn(
+                      'px-2 py-1 rounded-full text-xs font-medium',
+                      issue.closed_at ? 'status-green' : 'status-yellow'
+                    )}
+                  >
                     {issue.closed_at ? 'Closed' : 'Open'}
                   </span>
                   {issue.closed_at && (
@@ -87,7 +91,10 @@ export function IssuesTable({ issues }: IssuesTableProps) {
                   {issue.assignees.length > 0 ? (
                     <div className="flex flex-wrap gap-1">
                       {issue.assignees.map((assignee) => (
-                        <span key={assignee} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                        <span
+                          key={assignee}
+                          className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800"
+                        >
                           {assignee}
                         </span>
                       ))}
@@ -100,7 +107,10 @@ export function IssuesTable({ issues }: IssuesTableProps) {
                   {issue.labels.length > 0 ? (
                     <div className="flex flex-wrap gap-1">
                       {issue.labels.slice(0, 2).map((label) => (
-                        <span key={label} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">
+                        <span
+                          key={label}
+                          className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800"
+                        >
                           {label}
                         </span>
                       ))}
@@ -120,8 +130,11 @@ export function IssuesTable({ issues }: IssuesTableProps) {
                 <td className="px-6 py-4 whitespace-nowrap">
                   {issue.linked_prs.length > 0 ? (
                     <div className="text-sm">
-                      {issue.linked_prs.map(pr => (
-                        <span key={pr} className="inline-flex items-center px-2 py-1 rounded text-xs bg-green-100 text-green-800 mr-1">
+                      {issue.linked_prs.map((pr) => (
+                        <span
+                          key={pr}
+                          className="inline-flex items-center px-2 py-1 rounded text-xs bg-green-100 text-green-800 mr-1"
+                        >
                           #{pr}
                         </span>
                       ))}
