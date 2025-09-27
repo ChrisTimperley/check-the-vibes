@@ -16,7 +16,7 @@ import {
 } from '@mui/material';
 import { Settings } from '@mui/icons-material';
 import { Issue, ProjectItem } from '../types';
-import { formatDate, formatDurationHours } from '../utils/dateUtils';
+import { formatDate } from '../utils/dateUtils';
 
 interface IssuesSectionProps {
   issues: Issue[];
@@ -43,18 +43,15 @@ export const IssuesSection: React.FC<IssuesSectionProps> = ({
       if (sortBy === 'created_at' || sortBy === 'closed_at') {
         aValue = aValue ? new Date(aValue).getTime() : 0;
         bValue = bValue ? new Date(bValue).getTime() : 0;
-      } else if (sortBy === 'time_to_close_hours') {
-        aValue = aValue ?? Infinity;
-        bValue = bValue ?? Infinity;
       } else if (sortBy === 'comments') {
         aValue = aValue ?? 0;
         bValue = bValue ?? 0;
       } else if (sortBy === 'assignees') {
-        aValue = (aValue?.length ?? 0);
-        bValue = (bValue?.length ?? 0);
+        aValue = aValue?.length ?? 0;
+        bValue = bValue?.length ?? 0;
       } else if (sortBy === 'labels') {
-        aValue = (aValue?.length ?? 0);
-        bValue = (bValue?.length ?? 0);
+        aValue = aValue?.length ?? 0;
+        bValue = bValue?.length ?? 0;
       }
 
       if (aValue < bValue) {
@@ -140,6 +137,15 @@ export const IssuesSection: React.FC<IssuesSectionProps> = ({
               </TableCell>
               <TableCell sx={{ fontWeight: 700 }}>
                 <TableSortLabel
+                  active={sortBy === 'closed_at'}
+                  direction={sortBy === 'closed_at' ? sortDirection : 'asc'}
+                  onClick={() => handleSort('closed_at')}
+                >
+                  Closed
+                </TableSortLabel>
+              </TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>
+                <TableSortLabel
                   active={sortBy === 'comments'}
                   direction={sortBy === 'comments' ? sortDirection : 'asc'}
                   onClick={() => handleSort('comments')}
@@ -153,16 +159,7 @@ export const IssuesSection: React.FC<IssuesSectionProps> = ({
                   direction={sortBy === 'closed_at' ? sortDirection : 'asc'}
                   onClick={() => handleSort('closed_at')}
                 >
-                  Closed?
-                </TableSortLabel>
-              </TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>
-                <TableSortLabel
-                  active={sortBy === 'time_to_close_hours'}
-                  direction={sortBy === 'time_to_close_hours' ? sortDirection : 'asc'}
-                  onClick={() => handleSort('time_to_close_hours')}
-                >
-                  Time to Close
+                  Status
                 </TableSortLabel>
               </TableCell>
               <TableCell sx={{ fontWeight: 700 }}>
@@ -188,18 +185,6 @@ export const IssuesSection: React.FC<IssuesSectionProps> = ({
           </TableHead>
           <TableBody>
             {sortedIssues.map((issue) => {
-              // Use backend time_to_close_hours if available, otherwise calculate it
-              const timeToClose = issue.time_to_close_hours ??
-                (issue.closed_at
-                  ? (() => {
-                      const created = new Date(issue.created_at);
-                      const closed = new Date(issue.closed_at);
-                      const diffMs = closed.getTime() - created.getTime();
-                      const diffHours = diffMs / (1000 * 60 * 60);
-                      return diffHours;
-                    })()
-                  : null);
-
               // Render assignees
               const renderAssignees = () => {
                 if (!issue.assignees || issue.assignees.length === 0) {
@@ -307,6 +292,9 @@ export const IssuesSection: React.FC<IssuesSectionProps> = ({
                     </Link>
                   </TableCell>
                   <TableCell>{formatDate(issue.created_at)}</TableCell>
+                  <TableCell>
+                    {issue.closed_at ? formatDate(issue.closed_at) : '—'}
+                  </TableCell>
                   <TableCell>{issue.comments ?? 0}</TableCell>
                   <TableCell>
                     <Chip
@@ -316,7 +304,6 @@ export const IssuesSection: React.FC<IssuesSectionProps> = ({
                       variant="outlined"
                     />
                   </TableCell>
-                  <TableCell>{formatDurationHours(timeToClose)}</TableCell>
                   <TableCell>{renderAssignees()}</TableCell>
                   <TableCell>{renderLabels()}</TableCell>
                   <TableCell>{renderLinkedPRs()}</TableCell>
