@@ -1,28 +1,21 @@
 import React from 'react';
-import {
-  Card,
-  CardContent,
-  Typography,
-  Box,
-  Chip,
-} from '@mui/material';
-import {
-  CheckCircle,
-  Schedule,
-  People,
-  Comment,
-} from '@mui/icons-material';
+import { Card, CardContent, Typography, Box, Chip, Link } from '@mui/material';
+import { CheckCircle, Schedule, People, Comment } from '@mui/icons-material';
 import { Issue, ProjectItem } from '../types';
 import { formatDate } from '../utils/dateUtils';
 
 interface IssuesSectionProps {
   issues: Issue[];
   projectItems: ProjectItem[];
+  owner: string;
+  repo: string;
 }
 
 export const IssuesSection: React.FC<IssuesSectionProps> = ({
   issues,
   projectItems,
+  owner,
+  repo,
 }) => {
   return (
     <Card sx={{ mb: 4 }}>
@@ -30,11 +23,7 @@ export const IssuesSection: React.FC<IssuesSectionProps> = ({
         <Typography variant="h5" component="h2" gutterBottom>
           Issues
         </Typography>
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          sx={{ mb: 3 }}
-        >
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
           {issues.length} issues in this period
         </Typography>
 
@@ -54,7 +43,14 @@ export const IssuesSection: React.FC<IssuesSectionProps> = ({
                 }}
               >
                 <Typography variant="h6" component="div">
-                  #{issue.number}
+                  <Link
+                    href={`https://github.com/${owner}/${repo}/issues/${issue.number}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    underline="hover"
+                  >
+                    #{issue.number}
+                  </Link>
                 </Typography>
                 <Chip
                   label={issue.closed_at ? 'Closed' : 'Open'}
@@ -63,19 +59,21 @@ export const IssuesSection: React.FC<IssuesSectionProps> = ({
                 />
               </Box>
 
-              <Typography
-                variant="body1"
-                sx={{ mb: 1, fontWeight: 500 }}
-              >
+              <Typography variant="body1" sx={{ mb: 1, fontWeight: 500 }}>
                 {issue.title}
               </Typography>
 
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ mb: 2 }}
-              >
-                by {issue.author} • {formatDate(issue.created_at)}
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                by{' '}
+                <Link
+                  href={`https://github.com/${issue.author}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  underline="hover"
+                >
+                  {issue.author}
+                </Link>{' '}
+                • {formatDate(issue.created_at)}
               </Typography>
 
               {/* Issue checks: project board membership, has labels, comments */}
@@ -95,9 +93,7 @@ export const IssuesSection: React.FC<IssuesSectionProps> = ({
                         it.type === 'Issue' &&
                         (it.title === issue.title ||
                           (it.linked_artifact &&
-                            it.linked_artifact.includes(
-                              `#${issue.number}`
-                            )))
+                            it.linked_artifact.includes(`#${issue.number}`)))
                     ) ? (
                       <CheckCircle />
                     ) : (
@@ -110,9 +106,7 @@ export const IssuesSection: React.FC<IssuesSectionProps> = ({
                         it.type === 'Issue' &&
                         (it.title === issue.title ||
                           (it.linked_artifact &&
-                            it.linked_artifact.includes(
-                              `#${issue.number}`
-                            )))
+                            it.linked_artifact.includes(`#${issue.number}`)))
                     )
                       ? 'On Board'
                       : 'No Board'
@@ -124,9 +118,7 @@ export const IssuesSection: React.FC<IssuesSectionProps> = ({
                         it.type === 'Issue' &&
                         (it.title === issue.title ||
                           (it.linked_artifact &&
-                            it.linked_artifact.includes(
-                              `#${issue.number}`
-                            )))
+                            it.linked_artifact.includes(`#${issue.number}`)))
                     )
                       ? 'success'
                       : 'warning'
@@ -179,29 +171,31 @@ export const IssuesSection: React.FC<IssuesSectionProps> = ({
 
               {issue.assignees.length > 0 && (
                 <Box sx={{ mb: 1 }}>
-                  <Typography
-                    variant="body2"
-                    component="span"
-                    sx={{ mr: 1 }}
-                  >
+                  <Typography variant="body2" component="span" sx={{ mr: 1 }}>
                     Assigned to:
                   </Typography>
                   {issue.assignees.map((assignee) => (
-                    <Chip
+                    <Link
                       key={assignee}
-                      label={assignee}
-                      size="small"
-                      variant="outlined"
-                      sx={{ mr: 0.5 }}
-                    />
+                      href={`https://github.com/${assignee}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      underline="none"
+                    >
+                      <Chip
+                        label={assignee}
+                        size="small"
+                        variant="outlined"
+                        sx={{ mr: 0.5 }}
+                        clickable
+                      />
+                    </Link>
                   ))}
                 </Box>
               )}
 
               {issue.labels.length > 0 && (
-                <Box
-                  sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}
-                >
+                <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
                   {issue.labels.slice(0, 3).map((label) => (
                     <Chip
                       key={label}

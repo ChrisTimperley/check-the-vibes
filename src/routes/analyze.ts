@@ -107,10 +107,11 @@ export const analyzeRoutes: FastifyPluginAsync = async (fastify) => {
         const since = new Date(from);
         const until = to ? new Date(to) : new Date();
 
-        // Fetch PRs and commits in parallel
-        const [pullRequests, commits] = await Promise.all([
+        // Fetch PRs, commits, and issues in parallel
+        const [pullRequests, commits, issues] = await Promise.all([
           github.getPullRequestsSince(owner, repoName, since, until),
           github.getCommitsSince(owner, repoName, since, until),
+          github.getIssuesSince(owner, repoName, since, until),
         ]);
 
         // Basic aggregation for contributors
@@ -192,8 +193,8 @@ export const analyzeRoutes: FastifyPluginAsync = async (fastify) => {
           summary: {
             contributors_active: contributors.length,
             prs_opened: pullRequests.length,
-            issues_opened: 0,
-            issues_closed: 0,
+            issues_opened: issues.filter((i) => !i.is_closed).length,
+            issues_closed: issues.filter((i) => i.is_closed).length,
             pct_prs_reviewed: pullRequests.length
               ? pullRequests.filter((p) => p.hasReviews).length /
                 pullRequests.length
@@ -240,7 +241,7 @@ export const analyzeRoutes: FastifyPluginAsync = async (fastify) => {
             deletions: 0,
           })),
           project: { items: [] },
-          issues: [],
+          issues: issues,
         };
 
         return response;

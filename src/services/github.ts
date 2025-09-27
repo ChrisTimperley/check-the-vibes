@@ -492,4 +492,109 @@ export class GitHubService {
     console.log(`🎉 Found ${commits.length} commits in date range`);
     return commits;
   }
+
+  async getIssuesSince(
+    owner: string,
+    repo: string,
+    since: Date,
+    until?: Date
+  ): Promise<any[]> {
+    const issues: any[] = [];
+    let page = 1;
+    const perPage = 100;
+
+    console.log(`🔍 Fetching issues from ${owner}/${repo}...`);
+
+    let hasMore = true;
+    while (hasMore) {
+      console.log(
+        `📄 Fetching page ${page} (up to ${perPage} issues per page)...`
+      );
+
+      const response = await this.octokit.issues.listForRepo({
+        owner,
+        repo,
+        state: 'all',
+        sort: 'created',
+        direction: 'desc',
+        per_page: perPage,
+        page,
+      });
+
+      if (response.data.length === 0) {
+        console.log(`📄 No more issues found (page ${page})`);
+        break;
+      }
+
+      for (const issue of response.data) {
+        // Skip pull requests (GitHub API returns PRs as issues)
+        if (issue.pull_request) {
+          continue;
+        }
+
+        const createdAt = new Date(issue.created_at);
+        const upperLimit = until || new Date();
+
+        // Check if issue falls within our date range
+        if (createdAt < since) {
+          console.log(
+            `📅 Issue #${issue.number} created before range (${createdAt.toISOString()})`
+          );
+          hasMore = false;
+          break;
+        }
+
+        if (createdAt > upperLimit) {
+          continue;
+        }
+
+        console.log(`📋 Processing issue #${issue.number}: ${issue.title}`);
+
+        // Fetch additional issue details
+        const [comments] = await Promise.all([
+          this.octokit.issues.listComments({
+            owner,
+            repo,
+            issue_number: issue.number,
+          }),
+        ]);
+
+        issues.push({
+          number: issue.number,
+          title: issue.title,
+          author: issue.user?.login || 'unknown',
+          created_at: issue.created_at,
+          closed_at: issue.closed_at,
+          is_closed: issue.state === 'closed',
+          time_to_first_response_minutes: null, // Could be calculated if needed
+          time_to_close_hours: issue.closed_at
+            ? Math.round(
+                (new Date(issue.closed_at).getTime() -
+                  new Date(issue.created_at).getTime()) /
+                  (1000 * 60 * 60)
+              )
+            : null,
+          assignees: issue.assignees?.map((assignee) => assignee.login) || [],
+          labels:
+            issue.labels
+              ?.map((label) => (typeof label === 'string' ? label : label.name))
+              .filter(Boolean) || [],
+          linked_prs: [], // Could be enhanced to find linked PRs
+          url: issue.html_url,
+          comments: comments.data.length,
+        });
+      }
+
+      if (response.data.length < perPage) {
+        console.log(`📄 Reached final page (page ${page})`);
+        hasMore = false;
+        break;
+      }
+
+      page++;
+    }
+
+    console.log(`🎉 Found ${issues.length} issues in date range`);
+    return issues;
+  }
 }
