@@ -13,8 +13,8 @@ export default defineConfig({
         'coverage/',
         '**/*.d.ts',
         '**/*.test.ts',
-        '**/*.config.ts'
-      ]
-    }
-  }
+        '**/*.config.ts',
+      ],
+    },
+  },
 });

@@ -203,9 +203,12 @@ export class GitHubService {
 
       return checkRuns.data.check_runs || [];
     } catch (error) {
-      const enhancedError = new Error(`Failed to get check runs for PR ${prNumber}`, {
-        cause: error,
-      });
+      const enhancedError = new Error(
+        `Failed to get check runs for PR ${prNumber}`,
+        {
+          cause: error,
+        }
+      );
       console.warn(enhancedError.message, { cause: enhancedError.cause });
       return [];
     }
@@ -241,9 +244,12 @@ export class GitHubService {
         result.repository.pullRequest.closingIssuesReferences.nodes;
       return closingIssues.length > 0 ? closingIssues[0].number : null;
     } catch (error) {
-      const enhancedError = new Error(`Failed to get linked issues for PR ${prNumber}`, {
-        cause: error,
-      });
+      const enhancedError = new Error(
+        `Failed to get linked issues for PR ${prNumber}`,
+        {
+          cause: error,
+        }
+      );
       console.warn(enhancedError.message, { cause: enhancedError.cause });
       return null;
     }
@@ -254,9 +260,12 @@ export class GitHubService {
       await this.octokit.repos.get({ owner, repo });
       return true;
     } catch (error) {
-      const enhancedError = new Error(`Failed to validate repository ${owner}/${repo}`, {
-        cause: error,
-      });
+      const enhancedError = new Error(
+        `Failed to validate repository ${owner}/${repo}`,
+        {
+          cause: error,
+        }
+      );
       console.warn(enhancedError.message, { cause: enhancedError.cause });
       return false;
     }

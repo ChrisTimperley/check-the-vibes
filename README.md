@@ -162,7 +162,7 @@ check-the-vibes scan [options]
 
 Options:
   -o, --owner <owner>     Repository owner (username or organization)
-  -r, --repo <repo>       Repository name  
+  -r, --repo <repo>       Repository name
   -s, --since <date>      Start date (YYYY-MM-DD format)
   -u, --until <date>      End date (YYYY-MM-DD format, defaults to now)
   -t, --token <token>     GitHub personal access token

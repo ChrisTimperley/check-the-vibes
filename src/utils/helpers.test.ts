@@ -26,7 +26,9 @@ describe('Utility Functions', () => {
     it('should throw error when since is after until', () => {
       const since = new Date('2025-01-31');
       const until = new Date('2025-01-01');
-      expect(() => validateDateRange(since, until)).toThrow('Start date must be before end date');
+      expect(() => validateDateRange(since, until)).toThrow(
+        'Start date must be before end date'
+      );
     });
   });
 
