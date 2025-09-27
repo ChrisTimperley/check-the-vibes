@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -12,6 +12,7 @@ import {
   TableBody,
   Link,
   Chip,
+  TableSortLabel,
 } from '@mui/material';
 import { Settings } from '@mui/icons-material';
 import { Issue, ProjectItem } from '../types';
@@ -26,10 +27,54 @@ interface IssuesSectionProps {
 
 export const IssuesSection: React.FC<IssuesSectionProps> = ({
   issues,
-  projectItems,
   owner,
   repo,
 }) => {
+  const [sortBy, setSortBy] = useState<keyof Issue>('created_at');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+
+  // Sort issues based on current sort criteria
+  const sortedIssues = useMemo(() => {
+    return [...issues].sort((a, b) => {
+      let aValue: any = a[sortBy];
+      let bValue: any = b[sortBy];
+
+      // Handle special sorting cases
+      if (sortBy === 'created_at' || sortBy === 'closed_at') {
+        aValue = aValue ? new Date(aValue).getTime() : 0;
+        bValue = bValue ? new Date(bValue).getTime() : 0;
+      } else if (sortBy === 'time_to_close_hours') {
+        aValue = aValue ?? Infinity;
+        bValue = bValue ?? Infinity;
+      } else if (sortBy === 'comments') {
+        aValue = aValue ?? 0;
+        bValue = bValue ?? 0;
+      } else if (sortBy === 'assignees') {
+        aValue = (aValue?.length ?? 0);
+        bValue = (bValue?.length ?? 0);
+      } else if (sortBy === 'labels') {
+        aValue = (aValue?.length ?? 0);
+        bValue = (bValue?.length ?? 0);
+      }
+
+      if (aValue < bValue) {
+        return sortDirection === 'asc' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortDirection === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+  }, [issues, sortBy, sortDirection]);
+
+  const handleSort = (column: keyof Issue) => {
+    if (sortBy === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(column);
+      setSortDirection('asc');
+    }
+  };
   return (
     <Card sx={{ mb: 4 }}>
       <CardContent>
@@ -57,23 +102,95 @@ export const IssuesSection: React.FC<IssuesSectionProps> = ({
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell sx={{ fontWeight: 700 }}>Issue #</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Title</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Author</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Created</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Comments</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Closed?</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Time to Close</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Assignees</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Labels</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>
+                <TableSortLabel
+                  active={sortBy === 'number'}
+                  direction={sortBy === 'number' ? sortDirection : 'asc'}
+                  onClick={() => handleSort('number')}
+                >
+                  Issue #
+                </TableSortLabel>
+              </TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>
+                <TableSortLabel
+                  active={sortBy === 'title'}
+                  direction={sortBy === 'title' ? sortDirection : 'asc'}
+                  onClick={() => handleSort('title')}
+                >
+                  Title
+                </TableSortLabel>
+              </TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>
+                <TableSortLabel
+                  active={sortBy === 'author'}
+                  direction={sortBy === 'author' ? sortDirection : 'asc'}
+                  onClick={() => handleSort('author')}
+                >
+                  Author
+                </TableSortLabel>
+              </TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>
+                <TableSortLabel
+                  active={sortBy === 'created_at'}
+                  direction={sortBy === 'created_at' ? sortDirection : 'asc'}
+                  onClick={() => handleSort('created_at')}
+                >
+                  Created
+                </TableSortLabel>
+              </TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>
+                <TableSortLabel
+                  active={sortBy === 'comments'}
+                  direction={sortBy === 'comments' ? sortDirection : 'asc'}
+                  onClick={() => handleSort('comments')}
+                >
+                  Comments
+                </TableSortLabel>
+              </TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>
+                <TableSortLabel
+                  active={sortBy === 'closed_at'}
+                  direction={sortBy === 'closed_at' ? sortDirection : 'asc'}
+                  onClick={() => handleSort('closed_at')}
+                >
+                  Closed?
+                </TableSortLabel>
+              </TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>
+                <TableSortLabel
+                  active={sortBy === 'time_to_close_hours'}
+                  direction={sortBy === 'time_to_close_hours' ? sortDirection : 'asc'}
+                  onClick={() => handleSort('time_to_close_hours')}
+                >
+                  Time to Close
+                </TableSortLabel>
+              </TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>
+                <TableSortLabel
+                  active={sortBy === 'assignees'}
+                  direction={sortBy === 'assignees' ? sortDirection : 'asc'}
+                  onClick={() => handleSort('assignees')}
+                >
+                  Assignees
+                </TableSortLabel>
+              </TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>
+                <TableSortLabel
+                  active={sortBy === 'labels'}
+                  direction={sortBy === 'labels' ? sortDirection : 'asc'}
+                  onClick={() => handleSort('labels')}
+                >
+                  Labels
+                </TableSortLabel>
+              </TableCell>
               <TableCell sx={{ fontWeight: 700 }}>Linked PR(s)</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {issues.map((issue) => {
+            {sortedIssues.map((issue) => {
               // Use backend time_to_close_hours if available, otherwise calculate it
-              const timeToClose = issue.time_to_close_hours ?? 
-                (issue.closed_at 
+              const timeToClose = issue.time_to_close_hours ??
+                (issue.closed_at
                   ? (() => {
                       const created = new Date(issue.created_at);
                       const closed = new Date(issue.closed_at);
