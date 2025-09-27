@@ -127,7 +127,11 @@ function App() {
         {/* Show analysis results only after analysis and when not changing repository */}
         {hasAnalyzed && !showRepositoryInput && (
           <>
-            <ContributorsSection contributors={data.contributors} />
+            <ContributorsSection
+              contributors={data.contributors}
+              pullRequests={data.pull_requests}
+              issues={data.issues}
+            />
 
             <IssuesSection issues={data.issues} owner={owner} repo={repo} />
 
