@@ -28,11 +28,9 @@ import {
   Download,
   Settings,
   People,
-  CallMerge,
   BugReport,
   CheckCircle,
   Schedule,
-  TrendingUp,
   Comment,
   Search,
 } from '@mui/icons-material';
@@ -122,7 +120,7 @@ function App() {
           since.toISOString()
         )}&to=${encodeURIComponent(new Date().toISOString())}`
       );
-      let contributorsResult = null;
+      let contributorsResult: any = null;
       if (contributorsResp.ok) {
         // cast to any to avoid strict typing issues from the quick fetch
         contributorsResult = (await contributorsResp.json()) as any;
@@ -242,15 +240,6 @@ function App() {
     console.log('Exporting data...');
   };
 
-  const getSeverityColor = (
-    value: number,
-    thresholds: { good: number; warning: number }
-  ) => {
-    if (value >= thresholds.good) return 'success';
-    if (value >= thresholds.warning) return 'warning';
-    return 'error';
-  };
-
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'merged':
@@ -266,57 +255,6 @@ function App() {
         return 'default';
     }
   };
-
-  const summaryCards = [
-    {
-      title: 'Contributors',
-      value: data.summary.contributors_active,
-      icon: People,
-      description: 'Active contributors',
-      color: 'primary',
-    },
-    {
-      title: 'PRs Opened',
-      value: data.summary.prs_opened,
-      icon: CallMerge,
-      description: 'Pull requests opened',
-      color: 'secondary',
-    },
-    {
-      title: 'Issues',
-      value: `${data.summary.issues_opened}/${data.summary.issues_closed}`,
-      icon: BugReport,
-      description: 'Opened/Closed',
-      color: 'info',
-    },
-    {
-      title: 'PRs Reviewed',
-      value: `${Math.round(data.summary.pct_prs_reviewed * 100)}%`,
-      icon: CheckCircle,
-      description: 'Percentage reviewed',
-      color: getSeverityColor(data.summary.pct_prs_reviewed * 100, {
-        good: 80,
-        warning: 60,
-      }),
-    },
-    {
-      title: 'Cycle Time',
-      value: `${data.summary.median_pr_cycle_time_hours.toFixed(1)}h`,
-      icon: Schedule,
-      description: 'Median PR cycle time',
-      color: 'success',
-    },
-    {
-      title: 'Stale Items',
-      value: data.summary.stale_items,
-      icon: TrendingUp,
-      description: 'Items needing attention',
-      color: getSeverityColor(10 - data.summary.stale_items, {
-        good: 8,
-        warning: 5,
-      }),
-    },
-  ];
 
   return (
     <ThemeProvider theme={theme}>
@@ -425,43 +363,7 @@ function App() {
         {/* Show analysis results only after analysis */}
         {hasAnalyzed && (
           <>
-            {/* Summary Cards */}
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 4 }}>
-              {summaryCards.map((card) => {
-                const IconComponent = card.icon;
-                return (
-                  <Card
-                    key={card.title}
-                    className="metric-card"
-                    sx={{ minWidth: 250, flexGrow: 1 }}
-                  >
-                    <CardContent>
-                      <Box
-                        sx={{ display: 'flex', alignItems: 'center', mb: 1 }}
-                      >
-                        <IconComponent
-                          color={card.color as any}
-                          sx={{ mr: 1, fontSize: 28 }}
-                        />
-                        <Typography variant="h6" component="h2">
-                          {card.title}
-                        </Typography>
-                      </Box>
-                      <Typography
-                        variant="h4"
-                        component="div"
-                        sx={{ mb: 1, fontWeight: 'bold' }}
-                      >
-                        {card.value}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {card.description}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </Box>
+            {/* summary widgets removed per request */}
 
             {/* Pull Requests Section */}
             <Card sx={{ mb: 4 }}>
