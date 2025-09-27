@@ -3,5 +3,4 @@ export { RepositoryInput } from './RepositoryInput';
 export { PullRequestsSection } from './PullRequestsSection';
 export { ContributorsSection } from './ContributorsSection';
 export { IssuesSection } from './IssuesSection';
-export { RepositoryHygieneSection } from './RepositoryHygieneSection';
 export { DirectPushesSection } from './DirectPushesSection';

@@ -12,7 +12,6 @@ import {
   pullRequestSchema,
   issueSchema,
   projectItemSchema,
-  hygieneSchema,
   scoresSchema,
   loginSchema,
   urlSchema,
@@ -69,7 +68,6 @@ server.addSchema(contributorSchema);
 server.addSchema(pullRequestSchema);
 server.addSchema(issueSchema);
 server.addSchema(projectItemSchema);
-server.addSchema(hygieneSchema);
 server.addSchema(scoresSchema);
 server.addSchema(analyzeResponseSchema);
 server.addSchema(errorSchema);
