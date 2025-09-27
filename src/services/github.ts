@@ -278,6 +278,7 @@ export class GitHubService {
     until?: Date
   ): Promise<any[]> {
     const commits: any[] = [];
+    const skippedShas = new Set<string>();
     let page = 1;
     const perPage = 100;
 
@@ -321,39 +322,60 @@ export class GitHubService {
           const isDirectPush = parentCount === 1;
           const isMergeCommit = parentCount > 1;
 
-          // Skip commits that are likely from PR branches
-          // These are typically single-parent commits that have "merge" in their ancestry
-          // but aren't direct pushes to main
+          // If this commit was previously recorded as part of a merge, skip it
+          if (skippedShas.has(commit.sha)) {
+            console.log(
+              `↩️  Skipping commit already covered by a merge: ${commit.sha.slice(0, 7)}`
+            );
+            continue;
+          }
+
+          // Single-parent commits are treated as direct pushes to main unless
+          // they were recorded earlier as being part of a merge (skippedShas).
           if (isDirectPush) {
-            // For single-parent commits, we need to determine if this was a direct push
-            // or if it came from a PR branch that was later merged
-
-            // Simple heuristic: if the commit message looks like a PR commit
-            // (has common PR patterns), skip it
-            const commitMessage = commit.commit.message.toLowerCase();
-            const looksLikePRCommit =
-              commitMessage.includes('feat:') ||
-              commitMessage.includes('fix:') ||
-              commitMessage.includes('chore:') ||
-              commitMessage.includes('docs:') ||
-              commitMessage.includes('refactor:') ||
-              commitMessage.includes('test:') ||
-              (commitMessage.includes('(') && commitMessage.includes(')')); // conventional commits
-
-            if (looksLikePRCommit) {
-              console.log(
-                `❌ Skipping PR branch commit: ${commit.sha.slice(0, 7)} - "${commit.commit.message.split('\n')[0]}"`
-              );
-              continue;
-            } else {
-              console.log(
-                `📋 Including direct push: ${commit.sha.slice(0, 7)} - "${commit.commit.message.split('\n')[0]}"`
-              );
-            }
+            console.log(
+              `📋 Including direct push: ${commit.sha.slice(0, 7)} - "${commit.commit.message.split('\n')[0]}"`
+            );
           } else if (isMergeCommit) {
             console.log(
               `� Including merge commit: ${commit.sha.slice(0, 7)} - "${commit.commit.message.split('\n')[0]}"`
             );
+
+            // Attempt to find commits that were introduced by this merge so we can
+            // avoid listing them separately as direct pushes later.
+            try {
+              const parents = commitDetail.data.parents || [];
+              // Typical merge commit has two parents: [main_parent, branch_head]
+              if (parents.length >= 2 && parents[0] && parents[1]) {
+                const base = parents[0].sha as string | undefined;
+                const head = parents[1].sha as string | undefined;
+                if (!base || !head) {
+                  throw new Error(
+                    'Missing parent SHAs when analyzing merge commit'
+                  );
+                }
+                const comp = await this.octokit.repos
+                  .compareCommits({
+                    owner,
+                    repo,
+                    base,
+                    head,
+                  })
+                  .catch(() => null);
+
+                if (comp && comp.data && Array.isArray(comp.data.commits)) {
+                  for (const c of comp.data.commits) {
+                    if (c && c.sha) skippedShas.add(c.sha);
+                  }
+                }
+              }
+            } catch (error) {
+              // Non-fatal: if compare fails, we still include the merge commit
+              console.warn(
+                `Failed to compute commits for merge ${commit.sha.slice(0, 7)}:`,
+                error
+              );
+            }
           } else {
             // No parents or unusual structure - include to be safe
             console.log(`📋 Including commit: ${commit.sha.slice(0, 7)}`);
