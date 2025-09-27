@@ -20,7 +20,7 @@ function App() {
   const [owner, setOwner] = useState('');
   const [repo, setRepo] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [hasAnalyzed, setHasAnalyzed] = useState(false);
+  const [hasAnalyzed, setHasAnalyzed] = useState(true); // Set to true to show mock data
 
   const fetchCommits = async () => {
     if (!owner || !repo) {
