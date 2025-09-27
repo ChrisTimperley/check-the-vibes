@@ -64,6 +64,7 @@ export interface Issue {
   created_at: string;
   closed_at: string | null;
   time_to_first_response_minutes: number | null;
+  time_to_close_hours?: number | null;
   assignees: string[];
   labels: string[];
   linked_prs: number[];

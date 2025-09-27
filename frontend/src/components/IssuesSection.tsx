@@ -1,8 +1,21 @@
 import React from 'react';
-import { Card, CardContent, Typography, Box, Chip, Link } from '@mui/material';
-import { CheckCircle, Schedule, People, Comment } from '@mui/icons-material';
+import {
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  Box,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  Link,
+  Chip,
+} from '@mui/material';
+import { Settings } from '@mui/icons-material';
 import { Issue, ProjectItem } from '../types';
-import { formatDate } from '../utils/dateUtils';
+import { formatDate, formatDurationHours } from '../utils/dateUtils';
 
 interface IssuesSectionProps {
   issues: Issue[];
@@ -20,203 +33,181 @@ export const IssuesSection: React.FC<IssuesSectionProps> = ({
   return (
     <Card sx={{ mb: 4 }}>
       <CardContent>
-        <Typography variant="h5" component="h2" gutterBottom>
-          Issues
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-          {issues.length} issues in this period
-        </Typography>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            mb: 3,
+          }}
+        >
+          <div>
+            <Typography variant="h5" component="h2" gutterBottom>
+              Issues
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {issues.length} issues in this period
+            </Typography>
+          </div>
+          <Button variant="outlined" startIcon={<Settings />}>
+            Filter
+          </Button>
+        </Box>
 
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-          {issues.map((issue) => (
-            <Card
-              key={issue.number}
-              variant="outlined"
-              sx={{ p: 2, minWidth: 350, flexGrow: 1 }}
-            >
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  mb: 1,
-                }}
-              >
-                <Typography variant="h6" component="div">
-                  <Link
-                    href={`https://github.com/${owner}/${repo}/issues/${issue.number}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    underline="hover"
-                  >
-                    #{issue.number}
-                  </Link>
-                </Typography>
-                <Chip
-                  label={issue.closed_at ? 'Closed' : 'Open'}
-                  color={issue.closed_at ? 'success' : 'warning'}
-                  size="small"
-                />
-              </Box>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell sx={{ fontWeight: 700 }}>Issue #</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Title</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Author</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Created</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Comments</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Closed?</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Time to Close</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Assignees</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Labels</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Linked PR(s)</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {issues.map((issue) => {
+              // Use backend time_to_close_hours if available, otherwise calculate it
+              const timeToClose = issue.time_to_close_hours ?? 
+                (issue.closed_at 
+                  ? (() => {
+                      const created = new Date(issue.created_at);
+                      const closed = new Date(issue.closed_at);
+                      const diffMs = closed.getTime() - created.getTime();
+                      const diffHours = diffMs / (1000 * 60 * 60);
+                      return diffHours;
+                    })()
+                  : null);
 
-              <Typography variant="body1" sx={{ mb: 1, fontWeight: 500 }}>
-                {issue.title}
-              </Typography>
+              // Render assignees
+              const renderAssignees = () => {
+                if (!issue.assignees || issue.assignees.length === 0) {
+                  return <span>—</span>;
+                }
 
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                by{' '}
-                <Link
-                  href={`https://github.com/${issue.author}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  underline="hover"
-                >
-                  {issue.author}
-                </Link>{' '}
-                • {formatDate(issue.created_at)}
-              </Typography>
-
-              {/* Issue checks: project board membership, has labels, comments */}
-              <Box
-                sx={{
-                  display: 'flex',
-                  gap: 1,
-                  alignItems: 'center',
-                  mb: 1,
-                }}
-              >
-                {/* appears in project board */}
-                <Chip
-                  icon={
-                    projectItems.some(
-                      (it) =>
-                        it.type === 'Issue' &&
-                        (it.title === issue.title ||
-                          (it.linked_artifact &&
-                            it.linked_artifact.includes(`#${issue.number}`)))
-                    ) ? (
-                      <CheckCircle />
-                    ) : (
-                      <Schedule />
-                    )
-                  }
-                  label={
-                    projectItems.some(
-                      (it) =>
-                        it.type === 'Issue' &&
-                        (it.title === issue.title ||
-                          (it.linked_artifact &&
-                            it.linked_artifact.includes(`#${issue.number}`)))
-                    )
-                      ? 'On Board'
-                      : 'No Board'
-                  }
-                  size="small"
-                  color={
-                    projectItems.some(
-                      (it) =>
-                        it.type === 'Issue' &&
-                        (it.title === issue.title ||
-                          (it.linked_artifact &&
-                            it.linked_artifact.includes(`#${issue.number}`)))
-                    )
-                      ? 'success'
-                      : 'warning'
-                  }
-                />
-
-                {/* assignment check */}
-                <Chip
-                  icon={<People />}
-                  label={
-                    issue.assignees && issue.assignees.length > 0
-                      ? 'Assigned'
-                      : 'Unassigned'
-                  }
-                  size="small"
-                  color={
-                    issue.assignees && issue.assignees.length > 0
-                      ? 'success'
-                      : 'error'
-                  }
-                />
-
-                {/* has labels */}
-                <Chip
-                  label={
-                    issue.labels && issue.labels.length > 0
-                      ? 'Has labels'
-                      : 'No labels'
-                  }
-                  size="small"
-                  color={
-                    issue.labels && issue.labels.length > 0
-                      ? 'primary'
-                      : 'default'
-                  }
-                />
-
-                {/* comments count */}
-                <Chip
-                  icon={<Comment />}
-                  label={
-                    typeof issue.comments === 'number'
-                      ? `${issue.comments} comments`
-                      : 'No comments'
-                  }
-                  size="small"
-                  variant="outlined"
-                />
-              </Box>
-
-              {issue.assignees.length > 0 && (
-                <Box sx={{ mb: 1 }}>
-                  <Typography variant="body2" component="span" sx={{ mr: 1 }}>
-                    Assigned to:
-                  </Typography>
-                  {issue.assignees.map((assignee) => (
+                if (issue.assignees.length === 1) {
+                  return (
                     <Link
-                      key={assignee}
-                      href={`https://github.com/${assignee}`}
+                      href={`https://github.com/${issue.assignees[0]}`}
                       target="_blank"
                       rel="noreferrer"
-                      underline="none"
                     >
+                      {issue.assignees[0]}
+                    </Link>
+                  );
+                }
+
+                return (
+                  <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                    {issue.assignees.map((assignee, index) => (
+                      <span key={assignee}>
+                        <Link
+                          href={`https://github.com/${assignee}`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {assignee}
+                        </Link>
+                        {index < issue.assignees.length - 1 && ', '}
+                      </span>
+                    ))}
+                  </Box>
+                );
+              };
+
+              // Render labels
+              const renderLabels = () => {
+                if (!issue.labels || issue.labels.length === 0) {
+                  return <span>—</span>;
+                }
+
+                return (
+                  <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                    {issue.labels.slice(0, 2).map((label) => (
                       <Chip
-                        label={assignee}
+                        key={label}
+                        label={label}
                         size="small"
                         variant="outlined"
-                        sx={{ mr: 0.5 }}
-                        clickable
+                        color="default"
                       />
-                    </Link>
-                  ))}
-                </Box>
-              )}
+                    ))}
+                    {issue.labels.length > 2 && (
+                      <Chip
+                        label={`+${issue.labels.length - 2}`}
+                        size="small"
+                        variant="outlined"
+                        color="default"
+                      />
+                    )}
+                  </Box>
+                );
+              };
 
-              {issue.labels.length > 0 && (
-                <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                  {issue.labels.slice(0, 3).map((label) => (
+              // Render linked PRs
+              const renderLinkedPRs = () => {
+                if (!issue.linked_prs || issue.linked_prs.length === 0) {
+                  return <span>—</span>;
+                }
+
+                return (
+                  <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                    {issue.linked_prs.map((prNum, index) => (
+                      <span key={prNum}>
+                        <Link
+                          href={`https://github.com/${owner}/${repo}/pull/${prNum}`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          #{prNum}
+                        </Link>
+                        {index < issue.linked_prs.length - 1 && ', '}
+                      </span>
+                    ))}
+                  </Box>
+                );
+              };
+
+              return (
+                <TableRow key={issue.number}>
+                  <TableCell>
+                    <Link href={issue.url} target="_blank" rel="noreferrer">
+                      #{issue.number}
+                    </Link>
+                  </TableCell>
+                  <TableCell>{issue.title}</TableCell>
+                  <TableCell>
+                    <Link
+                      href={`https://github.com/${issue.author}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {issue.author}
+                    </Link>
+                  </TableCell>
+                  <TableCell>{formatDate(issue.created_at)}</TableCell>
+                  <TableCell>{issue.comments ?? 0}</TableCell>
+                  <TableCell>
                     <Chip
-                      key={label}
-                      label={label}
+                      label={issue.closed_at ? 'Closed' : 'Open'}
                       size="small"
-                      variant="outlined"
-                      color="default"
-                    />
-                  ))}
-                  {issue.labels.length > 3 && (
-                    <Chip
-                      label={`+${issue.labels.length - 3} more`}
-                      size="small"
+                      color={issue.closed_at ? 'success' : 'warning'}
                       variant="outlined"
                     />
-                  )}
-                </Box>
-              )}
-            </Card>
-          ))}
-        </Box>
+                  </TableCell>
+                  <TableCell>{formatDurationHours(timeToClose)}</TableCell>
+                  <TableCell>{renderAssignees()}</TableCell>
+                  <TableCell>{renderLabels()}</TableCell>
+                  <TableCell>{renderLinkedPRs()}</TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
       </CardContent>
     </Card>
   );
