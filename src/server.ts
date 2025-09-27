@@ -52,6 +52,10 @@ server.setErrorHandler(async (error, _request, reply) => {
 });
 
 // Register plugins
+await server.register(import('@fastify/cors'), {
+  origin: ['http://localhost:3000'],
+  credentials: true,
+});
 await server.register(swaggerPlugin);
 
 // Register schemas (must be done before registering routes that reference them)

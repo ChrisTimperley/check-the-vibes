@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -84,11 +84,38 @@ const formatDate = (iso?: string) => {
 };
 
 function App() {
-  const [data] = useState(mockAnalysisData);
+  const [data, setData] = useState(mockAnalysisData);
   const [timeWindow, setTimeWindow] = useState('14');
+
+  const fetchCommits = async () => {
+    try {
+      console.log('Fetching commits from API...');
+      const repo = 'ChrisTimperley/check-the-vibes';
+      const response = await fetch(`http://localhost:8000/commits?repo=${encodeURIComponent(repo)}&days=${timeWindow}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch commits');
+      }
+      const result = await response.json();
+      console.log('Received commits:', result);
+
+      // Update only the direct_pushes part with real data
+      setData(prev => ({
+        ...prev,
+        direct_pushes: result.commits,
+      }));
+      console.log('Updated data with real commits');
+    } catch (error) {
+      console.error('Error fetching commits:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchCommits();
+  }, [timeWindow]);
 
   const handleRefresh = () => {
     console.log('Refreshing data...');
+    fetchCommits();
   };
 
   const formatDateTime = (iso?: string) => {
@@ -1283,7 +1310,11 @@ function App() {
                           {c.committer}
                         </Link>
                       </TableCell>
-                      <TableCell sx={{ maxWidth: 400 }}>{c.message}</TableCell>
+                      <TableCell sx={{ maxWidth: 400 }}>
+                        {c.message.length > 60
+                          ? `${c.message.slice(0, 60)}...`
+                          : c.message}
+                      </TableCell>
                       <TableCell>
                         <Box
                           sx={{ display: 'flex', gap: 1, alignItems: 'center' }}

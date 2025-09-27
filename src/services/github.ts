@@ -270,4 +270,61 @@ export class GitHubService {
       return false;
     }
   }
+
+  async getCommitsSince(
+    owner: string,
+    repo: string,
+    since: Date,
+    until?: Date
+  ): Promise<any[]> {
+    const commits: any[] = [];
+    let page = 1;
+    const perPage = 100;
+
+    console.log(`🔍 Fetching commits from ${owner}/${repo}...`);
+
+    let hasMore = true;
+    while (hasMore) {
+      console.log(`📄 Fetching commit page ${page}...`);
+
+      const response = await this.octokit.repos.listCommits({
+        owner,
+        repo,
+        since: since.toISOString(),
+        until: until?.toISOString(),
+        per_page: perPage,
+        page,
+      });
+
+      if (response.data.length === 0) {
+        console.log('📄 No more commits found');
+        hasMore = false;
+        break;
+      }
+
+      for (const commit of response.data) {
+        commits.push({
+          sha: commit.sha,
+          committer:
+            commit.author?.login || commit.commit.author?.name || 'Unknown',
+          message: commit.commit.message,
+          date: commit.commit.author?.date || commit.commit.committer?.date,
+          additions: 0, // These would need separate API calls to get
+          deletions: 0,
+          ci_status: 'unknown',
+        });
+      }
+
+      if (response.data.length < perPage) {
+        console.log(`📄 Reached final page (page ${page})`);
+        hasMore = false;
+        break;
+      }
+
+      page++;
+    }
+
+    console.log(`🎉 Found ${commits.length} commits in date range`);
+    return commits;
+  }
 }
