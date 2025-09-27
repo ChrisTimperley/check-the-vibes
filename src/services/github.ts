@@ -285,7 +285,6 @@ export class GitHubService {
     until?: Date
   ): Promise<any[]> {
     const commits: any[] = [];
-    const skippedShas = new Set<string>();
     let page = 1;
     const perPage = 100;
 
@@ -318,75 +317,10 @@ export class GitHubService {
             ref: commit.sha,
           });
 
-          // We want:
-          // 1. Direct pushes (single parent commits that went directly to main)
-          // 2. Merge commits (multiple parents)
-          // We DON'T want: commits that were part of PR branches before being merged
-
-          const parentCount = commitDetail.data.parents
-            ? commitDetail.data.parents.length
-            : 0;
-          const isDirectPush = parentCount === 1;
-          const isMergeCommit = parentCount > 1;
-
-          // If this commit was previously recorded as part of a merge, skip it
-          if (skippedShas.has(commit.sha)) {
-            console.log(
-              `↩️  Skipping commit already covered by a merge: ${commit.sha.slice(0, 7)}`
-            );
-            continue;
-          }
-
-          // Single-parent commits are treated as direct pushes to main unless
-          // they were recorded earlier as being part of a merge (skippedShas).
-          if (isDirectPush) {
-            console.log(
-              `📋 Including direct push: ${commit.sha.slice(0, 7)} - "${commit.commit.message.split('\n')[0]}"`
-            );
-          } else if (isMergeCommit) {
-            console.log(
-              `� Including merge commit: ${commit.sha.slice(0, 7)} - "${commit.commit.message.split('\n')[0]}"`
-            );
-
-            // Attempt to find commits that were introduced by this merge so we can
-            // avoid listing them separately as direct pushes later.
-            try {
-              const parents = commitDetail.data.parents || [];
-              // Typical merge commit has two parents: [main_parent, branch_head]
-              if (parents.length >= 2 && parents[0] && parents[1]) {
-                const base = parents[0].sha as string | undefined;
-                const head = parents[1].sha as string | undefined;
-                if (!base || !head) {
-                  throw new Error(
-                    'Missing parent SHAs when analyzing merge commit'
-                  );
-                }
-                const comp = await this.octokit.repos
-                  .compareCommits({
-                    owner,
-                    repo,
-                    base,
-                    head,
-                  })
-                  .catch(() => null);
-
-                if (comp && comp.data && Array.isArray(comp.data.commits)) {
-                  for (const c of comp.data.commits) {
-                    if (c && c.sha) skippedShas.add(c.sha);
-                  }
-                }
-              }
-            } catch (error) {
-              // Non-fatal: if compare fails, we still include the merge commit
-              console.warn(
-                `Failed to compute commits for merge ${commit.sha.slice(0, 7)}:`,
-                error
-              );
-            }
-          } else {
-            // No parents or unusual structure - include to be safe
-            console.log(`📋 Including commit: ${commit.sha.slice(0, 7)}`);
-          }
+          // Include all commits on the default branch
+          console.log(
+            `📋 Including commit: ${commit.sha.slice(0, 7)} - "${commit.commit.message.split('\n')[0]}"`
+          );
 
           // Fetch detailed stats and CI status for included commits
           let additions = commitDetail.data.stats?.additions || 0;
