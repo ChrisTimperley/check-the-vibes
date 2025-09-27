@@ -68,9 +68,6 @@ export const analyzeResponseSchema = {
       items: { $ref: 'Issue' },
       default: [],
     },
-    hygiene: {
-      $ref: 'Hygiene',
-    },
     scores: {
       $ref: 'Scores',
     },
@@ -83,7 +80,6 @@ export const analyzeResponseSchema = {
     'pull_requests',
     'project',
     'issues',
-    'hygiene',
   ],
 } as const;
 
@@ -231,54 +227,6 @@ export const projectItemSchema = {
   required: ['title', 'type', 'column', 'last_activity', 'assignees', 'labels'],
 } as const;
 
-export const hygieneSchema = {
-  $id: 'Hygiene',
-  type: 'object',
-  additionalProperties: false,
-  properties: {
-    branch_protection: {
-      type: 'object',
-      additionalProperties: false,
-      properties: {
-        present: { type: 'boolean' },
-        required_reviews: { type: 'integer', minimum: 0 },
-        status_checks_required: { type: 'boolean' },
-        enforce_admins: { type: 'boolean' },
-        allow_force_pushes: { type: 'boolean' },
-      },
-      required: ['present'],
-    },
-    codeowners: { type: 'boolean' },
-    ci_present: { type: 'boolean' },
-    issue_templates: { type: 'boolean' },
-    pr_template: { type: 'boolean' },
-    contributing: { type: 'boolean' },
-    code_of_conduct: { type: 'boolean' },
-    security: { type: 'boolean' },
-    license: { type: 'boolean' },
-    readme_quality: {
-      type: 'object',
-      additionalProperties: false,
-      properties: {
-        has_setup: { type: 'boolean' },
-        has_test: { type: 'boolean' },
-        badges: {
-          type: 'array',
-          items: { type: 'string' },
-          default: [],
-        },
-      },
-      required: ['has_setup', 'has_test'],
-    },
-    precommit: { type: 'boolean' },
-    editorconfig: { type: 'boolean' },
-    releases_recent: { type: 'boolean' },
-    conventional_commits_rate: { type: 'number', minimum: 0, maximum: 1 },
-    dependabot: { type: 'boolean' },
-  },
-  required: ['branch_protection', 'codeowners', 'ci_present', 'license'],
-} as const;
-
 export const scoresSchema = {
   $id: 'Scores',
   type: 'object',
@@ -289,7 +237,6 @@ export const scoresSchema = {
     prs: { type: 'integer', minimum: 0, maximum: 100 },
     project: { type: 'integer', minimum: 0, maximum: 100 },
     issues: { type: 'integer', minimum: 0, maximum: 100 },
-    hygiene: { type: 'integer', minimum: 0, maximum: 100 },
   },
   required: ['overall'],
 } as const;

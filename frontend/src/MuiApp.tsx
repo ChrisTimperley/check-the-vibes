@@ -11,7 +11,6 @@ import {
   PullRequestsSection,
   ContributorsSection,
   IssuesSection,
-  RepositoryHygieneSection,
   DirectPushesSection,
 } from './components';
 
@@ -199,8 +198,6 @@ function App() {
               issues={data.issues}
               projectItems={data.project.items}
             />
-
-            <RepositoryHygieneSection hygiene={data.hygiene} />
 
             <DirectPushesSection
               directPushes={data.direct_pushes || []}

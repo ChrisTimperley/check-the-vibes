@@ -227,7 +227,6 @@ export const analyzeRoutes: FastifyPluginAsync = async (fastify) => {
           })),
           project: { items: [] },
           issues: [],
-          hygiene: {},
         };
 
         return response;
