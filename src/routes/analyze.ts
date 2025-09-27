@@ -5,24 +5,11 @@ export const analyzeRoutes: FastifyPluginAsync = async (fastify) => {
     '/analyze',
     {
       schema: {
-        querystring: {
-          type: 'object',
-          required: ['repo', 'from', 'to'],
-          properties: {
-            repo: { type: 'string', pattern: '^[^/]+/[^/]+$' },
-            from: { type: 'string', format: 'date-time' },
-            to: { type: 'string', format: 'date-time' },
-            tz: { type: 'string' },
-          },
-        },
+        querystring: { $ref: 'QueryAnalyze' },
         response: {
-          500: {
-            type: 'object',
-            properties: {
-              code: { type: 'integer' },
-              message: { type: 'string' },
-            },
-          },
+          200: { $ref: 'AnalyzeResponse' },
+          400: { $ref: 'Error' },
+          500: { $ref: 'Error' },
         },
       },
     },

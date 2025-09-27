@@ -5,6 +5,23 @@ import dotenv from 'dotenv';
 import { healthRoutes } from './routes/health.js';
 import { analyzeRoutes } from './routes/analyze.js';
 import { swaggerPlugin } from './plugins/swagger.js';
+import {
+  errorSchema,
+  analyzeResponseSchema,
+  contributorSchema,
+  pullRequestSchema,
+  issueSchema,
+  projectItemSchema,
+  hygieneSchema,
+  scoresSchema,
+  loginSchema,
+  urlSchema,
+  labelSchema,
+  sizeBucketSchema,
+  prStatusSchema,
+  ciStatusSchema,
+  queryAnalyzeSchema,
+} from './schemas/index.js';
 
 // Load environment variables
 dotenv.config();
@@ -36,6 +53,23 @@ server.setErrorHandler(async (error, _request, reply) => {
 
 // Register plugins
 await server.register(swaggerPlugin);
+
+// Register schemas (must be done before registering routes that reference them)
+server.addSchema(loginSchema);
+server.addSchema(urlSchema);
+server.addSchema(labelSchema);
+server.addSchema(sizeBucketSchema);
+server.addSchema(prStatusSchema);
+server.addSchema(ciStatusSchema);
+server.addSchema(contributorSchema);
+server.addSchema(pullRequestSchema);
+server.addSchema(issueSchema);
+server.addSchema(projectItemSchema);
+server.addSchema(hygieneSchema);
+server.addSchema(scoresSchema);
+server.addSchema(analyzeResponseSchema);
+server.addSchema(errorSchema);
+server.addSchema(queryAnalyzeSchema);
 
 // Register routes
 await server.register(healthRoutes);
