@@ -91,7 +91,9 @@ function App() {
     try {
       console.log('Fetching commits from API...');
       const repo = 'ChrisTimperley/check-the-vibes';
-      const response = await fetch(`http://localhost:8000/commits?repo=${encodeURIComponent(repo)}&days=${timeWindow}`);
+      const response = await fetch(
+        `http://localhost:8000/commits?repo=${encodeURIComponent(repo)}&days=${timeWindow}`
+      );
       if (!response.ok) {
         throw new Error('Failed to fetch commits');
       }
@@ -99,7 +101,7 @@ function App() {
       console.log('Received commits:', result);
 
       // Update only the direct_pushes part with real data
-      setData(prev => ({
+      setData((prev) => ({
         ...prev,
         direct_pushes: result.commits,
       }));
