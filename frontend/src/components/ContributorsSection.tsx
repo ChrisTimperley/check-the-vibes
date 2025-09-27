@@ -6,6 +6,7 @@ import {
   Box,
   Avatar,
   Chip,
+  Link,
 } from '@mui/material';
 import { Contributor } from '../types';
 
@@ -54,7 +55,16 @@ export const ContributorsSection: React.FC<ContributorsSectionProps> = ({
                       : ''}
                   </Avatar>
                   <Typography variant="h6" component="div">
-                    {contributor.login}
+                    <Link
+                      href={`https://github.com/${contributor.login}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      color="inherit"
+                      underline="hover"
+                      sx={{ textDecoration: 'none' }}
+                    >
+                      {contributor.login}
+                    </Link>
                   </Typography>
                 </Box>
 
