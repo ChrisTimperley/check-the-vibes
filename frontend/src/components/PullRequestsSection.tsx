@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -12,6 +12,7 @@ import {
   TableBody,
   Link,
   Chip,
+  TableSortLabel,
 } from '@mui/material';
 import { Settings } from '@mui/icons-material';
 import { PullRequest, Issue } from '../types';
@@ -34,6 +35,48 @@ export const PullRequestsSection: React.FC<PullRequestsSectionProps> = ({
   owner,
   repo,
 }) => {
+  const [sortBy, setSortBy] = useState<keyof PullRequest>('created_at');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+
+  // Sort pull requests based on current sort criteria
+  const sortedPullRequests = useMemo(() => {
+    return [...pullRequests].sort((a, b) => {
+      let aValue: any = a[sortBy];
+      let bValue: any = b[sortBy];
+
+      // Handle special sorting cases for different data types
+      if (sortBy === 'created_at' || sortBy === 'closed_at' || sortBy === 'merged_at') {
+        aValue = aValue ? new Date(aValue).getTime() : 0;
+        bValue = bValue ? new Date(bValue).getTime() : 0;
+      } else if (sortBy === 'comments' || sortBy === 'additions' || sortBy === 'deletions') {
+        aValue = aValue ?? 0;
+        bValue = bValue ?? 0;
+      } else if (sortBy === 'reviewers') {
+        aValue = aValue?.length ?? 0;
+        bValue = bValue?.length ?? 0;
+      } else if (sortBy === 'linked_issues') {
+        aValue = aValue?.length ?? 0;
+        bValue = bValue?.length ?? 0;
+      }
+
+      if (aValue < bValue) {
+        return sortDirection === 'asc' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortDirection === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+  }, [pullRequests, sortBy, sortDirection]);
+
+  const handleSort = (column: keyof PullRequest) => {
+    if (sortBy === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(column);
+      setSortDirection('asc');
+    }
+  };
   return (
     <Card sx={{ mb: 4 }}>
       <CardContent>
@@ -61,19 +104,83 @@ export const PullRequestsSection: React.FC<PullRequestsSectionProps> = ({
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell sx={{ fontWeight: 700 }}>PR #</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Title</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Author</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Reviewer</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Comments</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Linked Issue</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>CI</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>
+                <TableSortLabel
+                  active={sortBy === 'number'}
+                  direction={sortBy === 'number' ? sortDirection : 'asc'}
+                  onClick={() => handleSort('number')}
+                >
+                  PR #
+                </TableSortLabel>
+              </TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>
+                <TableSortLabel
+                  active={sortBy === 'title'}
+                  direction={sortBy === 'title' ? sortDirection : 'asc'}
+                  onClick={() => handleSort('title')}
+                >
+                  Title
+                </TableSortLabel>
+              </TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>
+                <TableSortLabel
+                  active={sortBy === 'status'}
+                  direction={sortBy === 'status' ? sortDirection : 'asc'}
+                  onClick={() => handleSort('status')}
+                >
+                  Status
+                </TableSortLabel>
+              </TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>
+                <TableSortLabel
+                  active={sortBy === 'author'}
+                  direction={sortBy === 'author' ? sortDirection : 'asc'}
+                  onClick={() => handleSort('author')}
+                >
+                  Author
+                </TableSortLabel>
+              </TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>
+                <TableSortLabel
+                  active={sortBy === 'reviewers'}
+                  direction={sortBy === 'reviewers' ? sortDirection : 'asc'}
+                  onClick={() => handleSort('reviewers')}
+                >
+                  Reviewer
+                </TableSortLabel>
+              </TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>
+                <TableSortLabel
+                  active={sortBy === 'comments'}
+                  direction={sortBy === 'comments' ? sortDirection : 'asc'}
+                  onClick={() => handleSort('comments')}
+                >
+                  Comments
+                </TableSortLabel>
+              </TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>
+                <TableSortLabel
+                  active={sortBy === 'linked_issues'}
+                  direction={sortBy === 'linked_issues' ? sortDirection : 'asc'}
+                  onClick={() => handleSort('linked_issues')}
+                >
+                  Linked Issue
+                </TableSortLabel>
+              </TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>
+                <TableSortLabel
+                  active={sortBy === 'ci_status'}
+                  direction={sortBy === 'ci_status' ? sortDirection : 'asc'}
+                  onClick={() => handleSort('ci_status')}
+                >
+                  CI
+                </TableSortLabel>
+              </TableCell>
               <TableCell sx={{ fontWeight: 700 }}>Lines Changed</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {pullRequests.map((pr) => {
+            {sortedPullRequests.map((pr) => {
               // Use comments directly from PR data, or fallback to deriving from linked issues
               let comments = pr.comments ?? 0;
               let linkedIssueElement = <span>—</span>;
