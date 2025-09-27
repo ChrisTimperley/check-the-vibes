@@ -58,6 +58,7 @@ export const PullRequestsSection: React.FC<PullRequestsSectionProps> = ({
             <TableRow>
               <TableCell sx={{ fontWeight: 700 }}>PR #</TableCell>
               <TableCell sx={{ fontWeight: 700 }}>Title</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
               <TableCell sx={{ fontWeight: 700 }}>Author</TableCell>
               <TableCell sx={{ fontWeight: 700 }}>Reviewer</TableCell>
               <TableCell sx={{ fontWeight: 700 }}>Comments</TableCell>
@@ -111,10 +112,30 @@ export const PullRequestsSection: React.FC<PullRequestsSectionProps> = ({
                     </Box>
                   );
                 }
-              }              const reviewerName =
+              }
+
+              const reviewerName =
                 pr.reviewers && pr.reviewers.length > 0
                   ? pr.reviewers[0]
                   : null;
+
+              // Helper function to get status chip properties
+              const getStatusChip = (status: string) => {
+                switch (status.toLowerCase()) {
+                  case 'merged':
+                    return { label: 'Merged', color: 'success' as const };
+                  case 'closed':
+                    return { label: 'Closed', color: 'error' as const };
+                  case 'open':
+                    return { label: 'Open', color: 'info' as const };
+                  case 'draft':
+                    return { label: 'Draft', color: 'default' as const };
+                  default:
+                    return { label: status, color: 'default' as const };
+                }
+              };
+
+              const statusChip = getStatusChip(pr.status);
 
               return (
                 <TableRow key={pr.number}>
@@ -124,6 +145,14 @@ export const PullRequestsSection: React.FC<PullRequestsSectionProps> = ({
                     </Link>
                   </TableCell>
                   <TableCell>{pr.title}</TableCell>
+                  <TableCell>
+                    <Chip
+                      label={statusChip.label}
+                      size="small"
+                      color={statusChip.color}
+                      variant="outlined"
+                    />
+                  </TableCell>
                   <TableCell>
                     <Link
                       href={`https://github.com/${pr.author}`}
