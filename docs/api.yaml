@@ -7,8 +7,8 @@ info:
     Read-only API that summarizes teamwork and SWE/VCS best practices for a GitHub
     repository within a specified time window. Returns a single JSON report suitable
     for rendering a TA dashboard.
-    
-    
+
+
     The API analyzes pull requests, issues, contributors, project boards, and repository
     hygiene to provide actionable insights for software engineering education.
   contact:
@@ -38,8 +38,8 @@ paths:
         Computes comprehensive metrics for Contributors, Pull Requests, Project Board, Issues,
         and Best Practices & Hygiene within a specified time window. All results are time-bounded
         and suitable for educational assessment and feedback.
-        
-        
+
+
         **Rate Limiting**: This endpoint may take several seconds to complete for large
         repositories due to GitHub API rate limits. Results are cached for 10 minutes.
       tags: [Repository Analysis]
@@ -51,7 +51,7 @@ paths:
           schema:
             type: string
             pattern: '^[^/]+/[^/]+$'
-            example: "microsoft/vscode"
+            example: 'microsoft/vscode'
         - in: query
           name: from
           required: true
@@ -100,7 +100,11 @@ paths:
                   summary: Minimal example
                   value:
                     repo: cmu-se/check-the-vibes-sample
-                    window: { from: '2025-09-01T00:00:00Z', to: '2025-09-15T23:59:59Z' }
+                    window:
+                      {
+                        from: '2025-09-01T00:00:00Z',
+                        to: '2025-09-15T23:59:59Z',
+                      }
                     summary:
                       contributors_active: 4
                       prs_opened: 8
@@ -179,7 +183,15 @@ paths:
                       releases_recent: false
                       conventional_commits_rate: 0.6
                       dependabot: true
-                    scores: { overall: 78, prs: 82, contributors: 70, project: 65, issues: 75, hygiene: 90 }
+                    scores:
+                      {
+                        overall: 78,
+                        prs: 82,
+                        contributors: 70,
+                        project: 65,
+                        issues: 75,
+                        hygiene: 90,
+                      }
         '400':
           description: Bad request (validation error)
           content:
@@ -188,11 +200,11 @@ paths:
                 $ref: '#/components/schemas/Error'
               example:
                 code: 400
-                message: "Invalid repository format"
+                message: 'Invalid repository format'
                 details:
-                  field: "repo"
-                  expected: "owner/repo format"
-                  received: "invalid-repo-name"
+                  field: 'repo'
+                  expected: 'owner/repo format'
+                  received: 'invalid-repo-name'
         '401':
           description: Unauthorized
           content:
@@ -260,7 +272,7 @@ components:
           additionalProperties: false
           properties:
             from: { type: string, format: date-time }
-            to:   { type: string, format: date-time }
+            to: { type: string, format: date-time }
           required: [from, to]
         summary:
           type: object
@@ -274,7 +286,16 @@ components:
             pct_prs_linked_to_issues: { type: number, minimum: 0, maximum: 1 }
             median_pr_cycle_time_hours: { type: number, minimum: 0 }
             stale_items: { type: integer, minimum: 0 }
-          required: [contributors_active, prs_opened, issues_opened, issues_closed, pct_prs_reviewed, median_pr_cycle_time_hours, stale_items]
+          required:
+            [
+              contributors_active,
+              prs_opened,
+              issues_opened,
+              issues_closed,
+              pct_prs_reviewed,
+              median_pr_cycle_time_hours,
+              stale_items,
+            ]
         contributors:
           type: array
           items: { $ref: '#/components/schemas/Contributor' }
@@ -300,7 +321,17 @@ components:
           $ref: '#/components/schemas/Hygiene'
         scores:
           $ref: '#/components/schemas/Scores'
-      required: [repo, window, summary, contributors, pull_requests, project, issues, hygiene]
+      required:
+        [
+          repo,
+          window,
+          summary,
+          contributors,
+          pull_requests,
+          project,
+          issues,
+          hygiene,
+        ]
 
     Contributor:
       type: object
@@ -348,7 +379,20 @@ components:
           default: []
         ci_status: { $ref: '#/components/schemas/CIStatus' }
         url: { $ref: '#/components/schemas/URL' }
-      required: [number, title, author, created_at, status, reviewed, files_changed, additions, deletions, size_bucket, url]
+      required:
+        [
+          number,
+          title,
+          author,
+          created_at,
+          status,
+          reviewed,
+          files_changed,
+          additions,
+          deletions,
+          size_bucket,
+          url,
+        ]
 
     Issue:
       type: object
@@ -375,7 +419,18 @@ components:
           items: { type: integer, minimum: 1 }
           default: []
         url: { $ref: '#/components/schemas/URL' }
-      required: [number, title, author, created_at, is_closed, assignees, labels, linked_prs, url]
+      required:
+        [
+          number,
+          title,
+          author,
+          created_at,
+          is_closed,
+          assignees,
+          labels,
+          linked_prs,
+          url,
+        ]
 
     ProjectItem:
       type: object
