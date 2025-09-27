@@ -303,14 +303,33 @@ export class GitHubService {
       }
 
       for (const commit of response.data) {
+        // Fetch detailed commit info to get additions/deletions
+        let additions = 0;
+        let deletions = 0;
+
+        try {
+          const commitDetail = await this.octokit.repos.getCommit({
+            owner,
+            repo,
+            ref: commit.sha,
+          });
+          additions = commitDetail.data.stats?.additions || 0;
+          deletions = commitDetail.data.stats?.deletions || 0;
+        } catch (error) {
+          console.warn(
+            `Failed to fetch stats for commit ${commit.sha.slice(0, 7)}:`,
+            error
+          );
+        }
+
         commits.push({
           sha: commit.sha,
           committer:
             commit.author?.login || commit.commit.author?.name || 'Unknown',
           message: commit.commit.message,
           date: commit.commit.author?.date || commit.commit.committer?.date,
-          additions: 0, // These would need separate API calls to get
-          deletions: 0,
+          additions,
+          deletions,
           ci_status: 'unknown',
         });
       }
