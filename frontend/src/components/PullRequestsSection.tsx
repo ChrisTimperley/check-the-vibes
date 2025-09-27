@@ -16,6 +16,11 @@ import {
 import { Settings } from '@mui/icons-material';
 import { PullRequest, Issue } from '../types';
 
+const truncateTitle = (title: string, maxLength: number = 50): string => {
+  if (title.length <= maxLength) return title;
+  return title.slice(0, maxLength) + '...';
+};
+
 interface PullRequestsSectionProps {
   pullRequests: PullRequest[];
   issues: Issue[];
@@ -174,7 +179,17 @@ export const PullRequestsSection: React.FC<PullRequestsSectionProps> = ({
                       #{pr.number}
                     </Link>
                   </TableCell>
-                  <TableCell>{pr.title}</TableCell>
+                  <TableCell
+                    title={pr.title}
+                    sx={{
+                      maxWidth: 300,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {truncateTitle(pr.title)}
+                  </TableCell>
                   <TableCell>
                     <Chip
                       label={statusChip.label}

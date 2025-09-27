@@ -18,6 +18,11 @@ import { Settings } from '@mui/icons-material';
 import { Issue } from '../types';
 import { formatDate } from '../utils/dateUtils';
 
+const truncateTitle = (title: string, maxLength: number = 50): string => {
+  if (title.length <= maxLength) return title;
+  return title.slice(0, maxLength) + '...';
+};
+
 interface IssuesSectionProps {
   issues: Issue[];
   owner: string;
@@ -280,7 +285,17 @@ export const IssuesSection: React.FC<IssuesSectionProps> = ({
                       #{issue.number}
                     </Link>
                   </TableCell>
-                  <TableCell>{issue.title}</TableCell>
+                  <TableCell
+                    title={issue.title}
+                    sx={{
+                      maxWidth: 300,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {truncateTitle(issue.title)}
+                  </TableCell>
                   <TableCell>
                     <Link
                       href={`https://github.com/${issue.author}`}

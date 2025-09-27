@@ -114,11 +114,7 @@ function App() {
           <>
             <ContributorsSection contributors={data.contributors} />
 
-            <IssuesSection
-              issues={data.issues}
-              owner={owner}
-              repo={repo}
-            />
+            <IssuesSection issues={data.issues} owner={owner} repo={repo} />
 
             <PullRequestsSection
               pullRequests={data.pull_requests}
