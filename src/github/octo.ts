@@ -24,25 +24,32 @@ export class OctoClient {
 
     // Configure retry strategy with exponential backoff
     this.limiter.on('retry', (_error, jobInfo) => {
-      console.log(`🔄 Retrying GitHub API request (attempt ${jobInfo.retryCount + 1})`);
+      console.log(
+        `🔄 Retrying GitHub API request (attempt ${jobInfo.retryCount + 1})`
+      );
     });
 
     this.limiter.on('failed', async (error, jobInfo) => {
       // Handle rate limit errors specifically
-      if (error.status === 429 || (error.response && error.response.status === 429)) {
+      if (
+        error.status === 429 ||
+        (error.response && error.response.status === 429)
+      ) {
         const retryAfter = error.response?.headers['retry-after'];
         const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : 60000; // Default 1 minute
-        console.log(`⏳ Rate limit exceeded, waiting ${waitTime / 1000}s before retry`);
+        console.log(
+          `⏳ Rate limit exceeded, waiting ${waitTime / 1000}s before retry`
+        );
         return waitTime;
       }
-      
+
       // Exponential backoff for other errors (network, server errors)
       if (jobInfo.retryCount < 2) {
         const delay = Math.min(1000 * Math.pow(2, jobInfo.retryCount), 30000);
         console.log(`⏳ Request failed, retrying in ${delay / 1000}s`);
         return delay;
       }
-      
+
       return; // Don't retry after max attempts
     });
 
@@ -52,7 +59,9 @@ export class OctoClient {
       request: {
         // Wrap all requests with rate limiter
         hook: (url: string, options: any) => {
-          return this.limiter.schedule(() => this.octokit.request(url, options));
+          return this.limiter.schedule(() =>
+            this.octokit.request(url, options)
+          );
         },
       },
     });
@@ -74,9 +83,9 @@ export class OctoClient {
       return { available: true };
     } catch (error: any) {
       console.warn('GitHub API health check failed:', error.message);
-      return { 
-        available: false, 
-        error: error.message || 'Unknown error' 
+      return {
+        available: false,
+        error: error.message || 'Unknown error',
       };
     }
   }
@@ -86,7 +95,7 @@ export class OctoClient {
    */
   async getRateLimit(): Promise<any> {
     try {
-      const response = await this.limiter.schedule(() => 
+      const response = await this.limiter.schedule(() =>
         this.octokit.rest.rateLimit.get()
       );
       return response.data;
@@ -101,7 +110,7 @@ export class OctoClient {
    */
   async getUser(): Promise<any> {
     try {
-      const response = await this.limiter.schedule(() => 
+      const response = await this.limiter.schedule(() =>
         this.octokit.rest.users.getAuthenticated()
       );
       return response.data;

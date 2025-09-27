@@ -24,15 +24,22 @@ export class GraphQLClient {
 
     // Configure retry strategy with exponential backoff
     this.limiter.on('retry', (_error, jobInfo) => {
-      console.log(`🔄 Retrying GraphQL request (attempt ${jobInfo.retryCount + 1})`);
+      console.log(
+        `🔄 Retrying GraphQL request (attempt ${jobInfo.retryCount + 1})`
+      );
     });
 
     this.limiter.on('failed', async (error, jobInfo) => {
       // Handle rate limit errors specifically
-      if (error.status === 429 || (error.response && error.response.status === 429)) {
+      if (
+        error.status === 429 ||
+        (error.response && error.response.status === 429)
+      ) {
         const retryAfter = error.response?.headers['retry-after'];
         const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : 60000; // Default 1 minute
-        console.log(`⏳ GraphQL rate limit exceeded, waiting ${waitTime / 1000}s before retry`);
+        console.log(
+          `⏳ GraphQL rate limit exceeded, waiting ${waitTime / 1000}s before retry`
+        );
         return waitTime;
       }
 
@@ -40,21 +47,26 @@ export class GraphQLClient {
       if (error.errors && error.errors.length > 0) {
         const errorMessage = error.errors[0].message;
         console.log(`❌ GraphQL error: ${errorMessage}`);
-        
+
         // Some GraphQL errors shouldn't be retried
-        if (errorMessage.includes('rate limit') || errorMessage.includes('secondary rate limit')) {
-          console.log(`⏳ Secondary rate limit hit, waiting ${60000 / 1000}s before retry`);
+        if (
+          errorMessage.includes('rate limit') ||
+          errorMessage.includes('secondary rate limit')
+        ) {
+          console.log(
+            `⏳ Secondary rate limit hit, waiting ${60000 / 1000}s before retry`
+          );
           return 60000; // Wait 1 minute
         }
       }
-      
+
       // Exponential backoff for other errors
       if (jobInfo.retryCount < 2) {
         const delay = Math.min(1000 * Math.pow(2, jobInfo.retryCount), 30000);
         console.log(`⏳ GraphQL request failed, retrying in ${delay / 1000}s`);
         return delay;
       }
-      
+
       return; // Don't retry after max attempts
     });
 
@@ -69,9 +81,12 @@ export class GraphQLClient {
   /**
    * Execute a GraphQL query with rate limiting
    */
-  async query<T = any>(query: string, variables?: Record<string, any>): Promise<T> {
+  async query<T = any>(
+    query: string,
+    variables?: Record<string, any>
+  ): Promise<T> {
     try {
-      return await this.limiter.schedule(() => 
+      return await this.limiter.schedule(() =>
         this.graphqlWithAuth(query, variables)
       );
     } catch (error: any) {
@@ -92,14 +107,14 @@ export class GraphQLClient {
           }
         }
       `;
-      
+
       await this.limiter.schedule(() => this.graphqlWithAuth(query));
       return { available: true };
     } catch (error: any) {
       console.warn('GraphQL API health check failed:', error.message);
-      return { 
-        available: false, 
-        error: error.message || 'Unknown error' 
+      return {
+        available: false,
+        error: error.message || 'Unknown error',
       };
     }
   }
@@ -119,10 +134,10 @@ export class GraphQLClient {
           }
         }
       `;
-      
-      const response = await this.limiter.schedule(() => 
+
+      const response = (await this.limiter.schedule(() =>
         this.graphqlWithAuth(query)
-      ) as { rateLimit: any };
+      )) as { rateLimit: any };
       return response.rateLimit;
     } catch (error: any) {
       console.warn('Failed to get GraphQL rate limit info:', error.message);
@@ -144,10 +159,10 @@ export class GraphQLClient {
           }
         }
       `;
-      
-      const response = await this.limiter.schedule(() => 
+
+      const response = (await this.limiter.schedule(() =>
         this.graphqlWithAuth(query)
-      ) as { viewer: any };
+      )) as { viewer: any };
       return response.viewer;
     } catch (error: any) {
       console.warn('Failed to get viewer info:', error.message);
