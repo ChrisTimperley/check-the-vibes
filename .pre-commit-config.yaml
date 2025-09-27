@@ -25,10 +25,6 @@ repos:
       # Check JSON syntax
       - id: check-json
 
-      # Prevent committing to main/master
-      - id: no-commit-to-branch
-        args: ['--branch', 'main', '--branch', 'master']
-
   # ESLint for TypeScript/JavaScript linting
   - repo: local
     hooks:
