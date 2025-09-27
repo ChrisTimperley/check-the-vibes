@@ -24,7 +24,10 @@
     "test": "vitest",
     "test:coverage": "vitest --coverage",
     "type-check": "tsc --noEmit",
-    "start:server": "tsx src/server.ts"
+    "start:server": "tsx src/server.ts",
+    "precommit:install": "pre-commit install",
+    "precommit:run": "pre-commit run --all-files",
+    "precommit:update": "pre-commit autoupdate"
   },
   "keywords": [
     "github",
