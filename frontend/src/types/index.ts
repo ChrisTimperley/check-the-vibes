@@ -30,6 +30,9 @@ export interface Contributor {
   reviews: number;
   issues: number;
   direct_pushes_default: number;
+  avatar_url?: string;
+  lines_added?: number;
+  lines_deleted?: number;
 }
 
 export interface PullRequest {

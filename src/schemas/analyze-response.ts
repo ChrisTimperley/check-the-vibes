@@ -93,6 +93,7 @@ export const contributorSchema = {
   additionalProperties: false,
   properties: {
     login: { $ref: 'Login' },
+    avatar_url: { type: 'string', format: 'uri' },
     commits: { type: 'integer', minimum: 0 },
     prs: { type: 'integer', minimum: 0 },
     reviews: { type: 'integer', minimum: 0 },

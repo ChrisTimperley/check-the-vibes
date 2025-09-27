@@ -14,6 +14,7 @@ import {
   Box,
   Chip,
   Table,
+  Avatar,
   TableHead,
   TableRow,
   TableCell,
@@ -110,15 +111,96 @@ function App() {
       if (!response.ok) {
         throw new Error('Failed to fetch commits');
       }
-      const result = await response.json();
-      console.log('Received commits:', result);
+      const commitsResult = await response.json();
+      console.log('Received commits:', commitsResult);
 
-      // Update only the direct_pushes part with real data
-      setData((prev) => ({
+      // Also fetch contributors from the new contributors endpoint so the UI updates
+      const since = new Date();
+      since.setDate(since.getDate() - Number(timeWindow));
+      const contributorsResp = await fetch(
+        `http://localhost:8000/contributors?repo=${encodeURIComponent(repoName)}&from=${encodeURIComponent(
+          since.toISOString()
+        )}&to=${encodeURIComponent(new Date().toISOString())}`
+      );
+      let contributorsResult = null;
+      if (contributorsResp.ok) {
+        // cast to any to avoid strict typing issues from the quick fetch
+        contributorsResult = (await contributorsResp.json()) as any;
+        console.log('Received contributors:', contributorsResult);
+      } else {
+        console.warn(
+          'Failed to fetch contributors from API, deriving from commits as fallback'
+        );
+        // derive a lightweight contributors list from commitsResult as a fallback
+        try {
+          const map: Record<
+            string,
+            {
+              login: string;
+              commits: number;
+              prs: number;
+              reviews: number;
+              issues: number;
+              direct_pushes_default: number;
+            }
+          > = {};
+          for (const c of commitsResult.commits || []) {
+            const committer =
+              (c.committer && c.committer.login) ||
+              c.committer ||
+              c.author ||
+              c.commit?.author?.name ||
+              'unknown';
+            const login =
+              typeof committer === 'string'
+                ? committer
+                : (committer && committer.login) || 'unknown';
+            if (!map[login])
+              map[login] = {
+                login,
+                commits: 0,
+                prs: 0,
+                reviews: 0,
+                issues: 0,
+                direct_pushes_default: 0,
+              };
+            map[login].commits += 1;
+            map[login].direct_pushes_default += 1;
+          }
+          const derived = Object.values(map).map((c) => ({
+            login: c.login,
+            commits: c.commits,
+            prs: c.prs,
+            reviews: c.reviews,
+            issues: c.issues,
+            lines_added: 0,
+            lines_deleted: 0,
+            direct_pushes_default: c.direct_pushes_default,
+            avatar_url: `https://avatars.githubusercontent.com/${c.login}`,
+          }));
+          contributorsResult = {
+            contributors: derived,
+            summary: { contributors_active: derived.length },
+          } as any;
+        } catch (e) {
+          console.warn('Fallback derivation failed', e);
+          contributorsResult = null;
+        }
+      }
+
+      // Update data with real commits and contributors (if available)
+      setData((prev: any) => ({
         ...prev,
-        direct_pushes: result.commits,
+        direct_pushes: commitsResult.commits,
+        contributors: contributorsResult?.contributors ?? prev.contributors,
+        summary: {
+          ...prev.summary,
+          contributors_active:
+            (contributorsResult?.summary?.contributors_active as number) ??
+            prev.summary.contributors_active,
+        },
       }));
-      console.log('Updated data with real commits');
+      console.log('Updated data with real commits and contributors');
       setHasAnalyzed(true);
     } catch (error) {
       console.error('Error fetching commits:', error);
@@ -501,9 +583,25 @@ function App() {
                       sx={{ minWidth: 300, flexGrow: 1 }}
                     >
                       <CardContent>
-                        <Typography variant="h6" component="div" gutterBottom>
-                          {contributor.login}
-                        </Typography>
+                        <Box
+                          sx={{ display: 'flex', alignItems: 'center', mb: 1 }}
+                        >
+                          <Avatar
+                            src={
+                              contributor.avatar_url ||
+                              `https://avatars.githubusercontent.com/${contributor.login}`
+                            }
+                            alt={contributor.login}
+                            sx={{ width: 40, height: 40, mr: 1 }}
+                          >
+                            {contributor.login
+                              ? contributor.login[0].toUpperCase()
+                              : ''}
+                          </Avatar>
+                          <Typography variant="h6" component="div">
+                            {contributor.login}
+                          </Typography>
+                        </Box>
 
                         <Box
                           sx={{
