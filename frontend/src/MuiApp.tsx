@@ -24,6 +24,7 @@ import {
   CheckCircle,
   Schedule,
   TrendingUp,
+  Comment,
 } from '@mui/icons-material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -467,6 +468,105 @@ function App() {
                     by {issue.author} •{' '}
                     {new Date(issue.created_at).toLocaleDateString()}
                   </Typography>
+
+                  {/* Issue checks: project board membership, has labels, comments */}
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      gap: 1,
+                      alignItems: 'center',
+                      mb: 1,
+                    }}
+                  >
+                    {/* appears in project board */}
+                    <Chip
+                      icon={
+                        data.project.items.some(
+                          (it) =>
+                            it.type === 'Issue' &&
+                            (it.title === issue.title ||
+                              (it.linked_artifact &&
+                                it.linked_artifact.includes(
+                                  `#${issue.number}`
+                                )))
+                        ) ? (
+                          <CheckCircle />
+                        ) : (
+                          <Schedule />
+                        )
+                      }
+                      label={
+                        data.project.items.some(
+                          (it) =>
+                            it.type === 'Issue' &&
+                            (it.title === issue.title ||
+                              (it.linked_artifact &&
+                                it.linked_artifact.includes(
+                                  `#${issue.number}`
+                                )))
+                        )
+                          ? 'On Board'
+                          : 'No Board'
+                      }
+                      size="small"
+                      color={
+                        data.project.items.some(
+                          (it) =>
+                            it.type === 'Issue' &&
+                            (it.title === issue.title ||
+                              (it.linked_artifact &&
+                                it.linked_artifact.includes(
+                                  `#${issue.number}`
+                                )))
+                        )
+                          ? 'success'
+                          : 'warning'
+                      }
+                    />
+
+                    {/* assignment check */}
+                    <Chip
+                      icon={<People />}
+                      label={
+                        issue.assignees && issue.assignees.length > 0
+                          ? 'Assigned'
+                          : 'Unassigned'
+                      }
+                      size="small"
+                      color={
+                        issue.assignees && issue.assignees.length > 0
+                          ? 'success'
+                          : 'error'
+                      }
+                    />
+
+                    {/* has labels */}
+                    <Chip
+                      label={
+                        issue.labels && issue.labels.length > 0
+                          ? 'Has labels'
+                          : 'No labels'
+                      }
+                      size="small"
+                      color={
+                        issue.labels && issue.labels.length > 0
+                          ? 'primary'
+                          : 'default'
+                      }
+                    />
+
+                    {/* comments count */}
+                    <Chip
+                      icon={<Comment />}
+                      label={
+                        typeof issue.comments === 'number'
+                          ? `${issue.comments} comments`
+                          : 'No comments'
+                      }
+                      size="small"
+                      variant="outlined"
+                    />
+                  </Box>
 
                   {issue.assignees.length > 0 && (
                     <Box sx={{ mb: 1 }}>

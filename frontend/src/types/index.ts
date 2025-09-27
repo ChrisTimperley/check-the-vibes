@@ -63,6 +63,8 @@ export interface Issue {
   assignees: string[];
   labels: string[];
   linked_prs: number[];
+  // optional number of comments on the issue (frontend display only)
+  comments?: number;
   url: string;
 }
 
