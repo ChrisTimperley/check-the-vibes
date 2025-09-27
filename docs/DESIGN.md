@@ -159,7 +159,7 @@ Each metric contributes points with stepwise thresholds. Example (PRs reviewed):
 
 ## 7) Architecture
 
-**Frontend.** React + Vite + TypeScript; Tailwind + a small UI kit; Recharts for simple charts. Single route with collapsible sections.
+**Frontend.** React + Vite + TypeScript; Material-UI for components; Recharts for simple charts. Single route with collapsible sections.
 
 **Backend.** FastAPI (Python) or Node/Express; service exposes `/analyze` that returns a structured JSON report for `repo` and `window`.
 
