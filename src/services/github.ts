@@ -177,6 +177,13 @@ export class GitHubService {
       commentCount: comments.data.length,
       hasReviews: reviews.data.length > 0,
       hasComments: comments.data.length > 0,
+      reviewers: [
+        ...new Set(
+          reviews.data
+            .map((review) => review.user?.login)
+            .filter((login): login is string => Boolean(login))
+        ),
+      ],
       ciStatus,
       linkedIssue,
       url: pr.html_url,

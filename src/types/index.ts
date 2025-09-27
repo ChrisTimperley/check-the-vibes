@@ -17,6 +17,7 @@ export interface PullRequestAnalysis {
   commentCount: number;
   hasReviews: boolean;
   hasComments: boolean;
+  reviewers: string[];
   ciStatus?: 'success' | 'failure' | 'pending' | 'unknown';
   linkedIssue: number | null;
   url: string;

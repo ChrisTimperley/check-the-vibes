@@ -221,7 +221,7 @@ export const analyzeRoutes: FastifyPluginAsync = async (fastify) => {
             time_to_first_review_minutes: 0,
             cycle_time_hours: 0,
             approvals: 0,
-            reviewers: [],
+            reviewers: p.reviewers || [],
             ci_status: p.ciStatus || 'unknown',
             url: p.url,
             comments: p.commentCount || 0,

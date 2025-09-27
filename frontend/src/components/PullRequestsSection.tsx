@@ -76,7 +76,9 @@ export const PullRequestsSection: React.FC<PullRequestsSectionProps> = ({
               if (pr.linked_issues && pr.linked_issues.length > 0) {
                 // If we don't have comments from PR data, try to get from first linked issue
                 if (pr.comments === undefined) {
-                  const issue = issues.find((i) => i.number === pr.linked_issues[0]);
+                  const issue = issues.find(
+                    (i) => i.number === pr.linked_issues[0]
+                  );
                   comments = issue?.comments ?? 0;
                 }
 
@@ -85,11 +87,7 @@ export const PullRequestsSection: React.FC<PullRequestsSectionProps> = ({
                   const issueNum = pr.linked_issues[0];
                   const issueUrl = `https://github.com/${owner}/${repo}/issues/${issueNum}`;
                   linkedIssueElement = (
-                    <Link
-                      href={issueUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
+                    <Link href={issueUrl} target="_blank" rel="noreferrer">
                       #{issueNum}
                     </Link>
                   );
@@ -114,10 +112,42 @@ export const PullRequestsSection: React.FC<PullRequestsSectionProps> = ({
                 }
               }
 
-              const reviewerName =
-                pr.reviewers && pr.reviewers.length > 0
-                  ? pr.reviewers[0]
-                  : null;
+              // Handle multiple reviewers
+              const renderReviewers = () => {
+                if (!pr.reviewers || pr.reviewers.length === 0) {
+                  return <span>—</span>;
+                }
+
+                if (pr.reviewers.length === 1) {
+                  return (
+                    <Link
+                      href={`https://github.com/${pr.reviewers[0]}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {pr.reviewers[0]}
+                    </Link>
+                  );
+                }
+
+                // Multiple reviewers - show them as separate links
+                return (
+                  <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                    {pr.reviewers.map((reviewer, index) => (
+                      <span key={reviewer}>
+                        <Link
+                          href={`https://github.com/${reviewer}`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {reviewer}
+                        </Link>
+                        {index < pr.reviewers.length - 1 && ', '}
+                      </span>
+                    ))}
+                  </Box>
+                );
+              };
 
               // Helper function to get status chip properties
               const getStatusChip = (status: string) => {
@@ -162,19 +192,7 @@ export const PullRequestsSection: React.FC<PullRequestsSectionProps> = ({
                       {pr.author}
                     </Link>
                   </TableCell>
-                  <TableCell>
-                    {reviewerName ? (
-                      <Link
-                        href={`https://github.com/${reviewerName}`}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        {reviewerName}
-                      </Link>
-                    ) : (
-                      '—'
-                    )}
-                  </TableCell>
+                  <TableCell>{renderReviewers()}</TableCell>
                   <TableCell>{comments}</TableCell>
                   <TableCell>{linkedIssueElement}</TableCell>
                   <TableCell>
