@@ -1,159 +1,73 @@
-# check-the-vibes
+# Check the Vibes
 
-A web application that analyzes GitHub repositories to assess software engineering best practices and teamwork. This tool provides a React-based dashboard with real-time GitHub API integration to analyze pull request patterns, code review practices, and team collaboration metrics.
+A web application that analyzes GitHub repositories to assess software engineering best practices and team collaboration. View detailed metrics about pull requests, issues, and contributor activity through an interactive dashboard.
 
 ## Features
 
-- 📊 **PR Analysis**: Real-time analysis of pull requests including lines changed, files modified, and review activity
-- 🔗 **Issue Tracking**: Interactive tables showing GitHub issues with sorting and filtering capabilities
-- 📈 **Team Metrics**: Track contributor activity, review participation, and collaboration patterns
-- 🌐 **Web Dashboard**: Modern React UI with Material-UI components and responsive design
-- ⚡ **Real-time Data**: Live GitHub API integration for up-to-date repository insights
-- 🐳 **DevContainer Ready**: Full development environment setup with VS Code
+- 📊 **Pull Request Analysis**: View PR metrics including lines changed, review activity, and merge patterns
+- 🔗 **Issue Tracking**: Browse and analyze GitHub issues with sorting capabilities
+- � **Team Collaboration**: Track contributor activity, commits, and participation metrics
+- 🌐 **Interactive Dashboard**: Modern React UI with real-time GitHub API integration
 
-## Documentation
-
-- 📋 **[Design Document](docs/DESIGN.md)** - Comprehensive design specification for the TA Dashboard MVP, including architecture, metrics, and implementation details
-- 🔌 **[API Specification](docs/api.yaml)** - OpenAPI 3.1 specification for the REST API endpoints
-
-## Quick Start
+## Installation
 
 ### Prerequisites
 
-- **Node.js 22+** and npm 10+
-- GitHub Personal Access Token (optional but recommended for private repos and higher rate limits)
+- **Node.js 22+** and **npm 10+**
+- GitHub Personal Access Token (recommended for better rate limits)
 
-### Installation
+### Setup
 
-```bash
-# Clone the repository
-git clone https://github.com/ChrisTimperley/check-the-vibes.git
-cd check-the-vibes
+1. **Clone and install**:
 
-# Install dependencies
-npm install
+   ```bash
+   git clone https://github.com/ChrisTimperley/check-the-vibes.git
+   cd check-the-vibes
+   npm install
+   ```
 
-# Build the project
-npm run build
-```
+2. **Configure GitHub token** (optional but recommended):
 
-### Basic Usage
+   ```bash
+   # Create environment file
+   echo "GITHUB_TOKEN=your_github_token_here" > .env
+   ```
 
-```bash
-# Scan a repository for PRs since a specific date
-npm run dev -- scan --owner microsoft --repo vscode --since 2024-01-01
+3. **Start the application**:
 
-# With GitHub token for private repos and higher rate limits
-GITHUB_TOKEN=your_token_here npm run dev -- scan --owner your-org --repo your-repo --since 2024-01-01
+   ```bash
+   npm run dev
+   ```
 
-# Custom output file and date range
-npm run dev -- scan \
-  --owner microsoft \
-  --repo vscode \
-  --since 2024-01-01 \
-  --until 2024-02-01 \
-  --output my-report.yaml
-```
+4. **Open your browser** to `http://localhost:5173`
 
-### Configuration
+## Usage
 
-Create a `.env` file in the project root:
+1. **Enter a repository**: Type in any public GitHub repository (e.g., `microsoft/vscode`)
+2. **View the analysis**: Browse through pull requests, issues, and contributor metrics
+3. **Change repositories**: Use the "Change Repository" button in the header to analyze different repos
 
-```bash
-# Copy the example environment file
-cp .env.example .env
+## GitHub Token Setup
 
-# Edit with your GitHub token
-GITHUB_TOKEN=ghp_your_personal_access_token_here
-```
+For private repositories and higher rate limits, create a Personal Access Token:
 
-### GitHub Token Setup
-
-1. Go to [GitHub Personal Access Tokens](https://github.com/settings/tokens)
+1. Go to [GitHub Settings > Personal Access Tokens](https://github.com/settings/tokens)
 2. Click "Generate new token (classic)"
-3. Select scopes:
-   - `repo` (for private repositories)
-   - `public_repo` (for public repositories only)
+3. Select scopes: `public_repo` (or `repo` for private repositories)
 4. Copy the token and add it to your `.env` file
 
 ## Development
 
-### DevContainer
+### Available Scripts
 
-This project includes a complete DevContainer setup for VS Code:
+- `npm run dev` - Start development server (frontend + backend)
+- `npm run build` - Build the application
+- `npm run test` - Run tests
+- `npm run lint` - Check code style
 
-1. Install the "Dev Containers" extension in VS Code
-2. Open the project in VS Code
-3. Click "Reopen in Container" when prompted
-4. The container will automatically install dependencies
+### DevContainer Support
 
-### Local Development
-
-```bash
-# Install dependencies
-npm install
-
-# Run in development mode
-npm run dev
-
-# Build the project
-npm run build
-
-# Run linter
-npm run lint
-
-# Fix linting issues
-npm run lint:fix
-
-# Format code
-npm run format
-
-# Check formatting
-npm run format:check
-```
-
-## Report Format
-
-The tool generates YAML reports with the following structure:
-
-```yaml
-repository:
-  owner: microsoft
-  name: vscode
-  url: https://github.com/microsoft/vscode
-analysis:
-  dateRange:
-    from: '2024-01-01'
-    to: '2024-02-01'
-  totalPullRequests: 42
-  analyzedAt: '2024-01-15T10:30:00.000Z'
-pullRequests:
-  - number: 1234
-    title: 'Add new feature'
-    author: developer123
-    createdAt: '2024-01-05T14:20:00Z'
-    state: merged
-    linesChanged:
-      additions: 150
-      deletions: 25
-      total: 175
-    filesChanged: 8
-    commits: 3
-    reviewCount: 2
-    commentCount: 5
-    hasReviews: true
-    hasComments: true
-    ciStatus: success
-    linkedIssue: 5678
-    url: https://github.com/microsoft/vscode/pull/1234
-summary:
-  averageLinesChanged: 175
-  averageFilesChanged: 8
-  averageCommits: 3
-  pullRequestsWithReviews: 35
-  pullRequestsWithComments: 40
-  ciSuccessRate: 85.5
-```
+This project includes VS Code DevContainer configuration for a complete development environment.
 
 ## License
 
