@@ -57,28 +57,27 @@ export const PullRequestsSection: React.FC<PullRequestsSectionProps> = ({
               <TableCell sx={{ fontWeight: 700 }}>Author</TableCell>
               <TableCell sx={{ fontWeight: 700 }}>Reviewer</TableCell>
               <TableCell sx={{ fontWeight: 700 }}>Comments</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>
-                Linked Issue
-              </TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Linked Issue</TableCell>
               <TableCell sx={{ fontWeight: 700 }}>CI</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>
-                Lines Changed
-              </TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Lines Changed</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {pullRequests.map((pr) => {
-              // derive comments count from linked issues when available
-              let comments = 0;
+              // Use comments directly from PR data, or fallback to deriving from linked issues
+              let comments = pr.comments ?? 0;
               let linkedIssueLabel = '—';
+
               if (pr.linked_issues && pr.linked_issues.length > 0) {
                 const first = pr.linked_issues[0];
-                const issue = issues.find(
-                  (i) => i.number === first
-                );
-                comments = issue?.comments ?? 0;
                 linkedIssueLabel = `#${first}`;
+                // If we don't have comments from PR data, try to get from issues
+                if (pr.comments === undefined) {
+                  const issue = issues.find((i) => i.number === first);
+                  comments = issue?.comments ?? 0;
+                }
               }
+
               const reviewerName =
                 pr.reviewers && pr.reviewers.length > 0
                   ? pr.reviewers[0]
@@ -87,11 +86,7 @@ export const PullRequestsSection: React.FC<PullRequestsSectionProps> = ({
               return (
                 <TableRow key={pr.number}>
                   <TableCell>
-                    <Link
-                      href={pr.url}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
+                    <Link href={pr.url} target="_blank" rel="noreferrer">
                       #{pr.number}
                     </Link>
                   </TableCell>
@@ -123,21 +118,25 @@ export const PullRequestsSection: React.FC<PullRequestsSectionProps> = ({
                   <TableCell>
                     <Chip
                       label={
-                        pr.ci_status === 'none'
+                        pr.ci_status === 'none' || pr.ci_status === 'unknown'
                           ? 'No CI'
-                          : pr.ci_status === 'pass'
+                          : pr.ci_status === 'success'
                             ? 'pass'
-                            : pr.ci_status === 'fail'
+                            : pr.ci_status === 'failure'
                               ? 'fail'
-                              : pr.ci_status
+                              : pr.ci_status === 'pending'
+                                ? 'pending'
+                                : pr.ci_status
                       }
                       size="small"
                       color={
-                        pr.ci_status === 'pass'
+                        pr.ci_status === 'success'
                           ? 'success'
-                          : pr.ci_status === 'fail'
+                          : pr.ci_status === 'failure'
                             ? 'error'
-                            : 'default'
+                            : pr.ci_status === 'pending'
+                              ? 'warning'
+                              : 'default'
                       }
                     />
                   </TableCell>

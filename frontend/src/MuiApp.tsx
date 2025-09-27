@@ -22,7 +22,7 @@ function App() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [hasAnalyzed, setHasAnalyzed] = useState(false);
 
-  const fetchCommits = async () => {
+  const fetchAnalysisData = async () => {
     if (!owner || !repo) {
       console.log('Owner and repo are required');
       return;
@@ -30,107 +30,32 @@ function App() {
 
     setIsAnalyzing(true);
     try {
-      console.log('Fetching commits from API...');
+      console.log('Fetching analysis data from API...');
       const repoName = `${owner}/${repo}`;
-      const response = await fetch(
-        `http://localhost:8000/commits?repo=${encodeURIComponent(repoName)}&days=${timeWindow}`
-      );
-      if (!response.ok) {
-        throw new Error('Failed to fetch commits');
-      }
-      const commitsResult = await response.json();
-      console.log('Received commits:', commitsResult);
-
-      // Also fetch contributors from the new contributors endpoint so the UI updates
       const since = new Date();
       since.setDate(since.getDate() - Number(timeWindow));
-      const contributorsResp = await fetch(
-        `http://localhost:8000/contributors?repo=${encodeURIComponent(repoName)}&from=${encodeURIComponent(
+
+      const response = await fetch(
+        `http://localhost:8000/analyze?repo=${encodeURIComponent(repoName)}&from=${encodeURIComponent(
           since.toISOString()
         )}&to=${encodeURIComponent(new Date().toISOString())}`
       );
-      let contributorsResult: any = null;
-      if (contributorsResp.ok) {
-        // cast to any to avoid strict typing issues from the quick fetch
-        contributorsResult = (await contributorsResp.json()) as any;
-        console.log('Received contributors:', contributorsResult);
-      } else {
-        console.warn(
-          'Failed to fetch contributors from API, deriving from commits as fallback'
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch analysis data: ${response.statusText}`
         );
-        // derive a lightweight contributors list from commitsResult as a fallback
-        try {
-          const map: Record<
-            string,
-            {
-              login: string;
-              commits: number;
-              prs: number;
-              reviews: number;
-              issues: number;
-              direct_pushes_default: number;
-            }
-          > = {};
-          for (const c of commitsResult.commits || []) {
-            const committer =
-              (c.committer && c.committer.login) ||
-              c.committer ||
-              c.author ||
-              c.commit?.author?.name ||
-              'unknown';
-            const login =
-              typeof committer === 'string'
-                ? committer
-                : (committer && committer.login) || 'unknown';
-            if (!map[login])
-              map[login] = {
-                login,
-                commits: 0,
-                prs: 0,
-                reviews: 0,
-                issues: 0,
-                direct_pushes_default: 0,
-              };
-            map[login].commits += 1;
-            map[login].direct_pushes_default += 1;
-          }
-          const derived = Object.values(map).map((c) => ({
-            login: c.login,
-            commits: c.commits,
-            prs: c.prs,
-            reviews: c.reviews,
-            issues: c.issues,
-            lines_added: 0,
-            lines_deleted: 0,
-            direct_pushes_default: c.direct_pushes_default,
-            avatar_url: `https://avatars.githubusercontent.com/${c.login}`,
-          }));
-          contributorsResult = {
-            contributors: derived,
-            summary: { contributors_active: derived.length },
-          } as any;
-        } catch (e) {
-          console.warn('Fallback derivation failed', e);
-          contributorsResult = null;
-        }
       }
 
-      // Update data with real commits and contributors (if available)
-      setData((prev: any) => ({
-        ...prev,
-        direct_pushes: commitsResult.commits,
-        contributors: contributorsResult?.contributors ?? prev.contributors,
-        summary: {
-          ...prev.summary,
-          contributors_active:
-            (contributorsResult?.summary?.contributors_active as number) ??
-            prev.summary.contributors_active,
-        },
-      }));
-      console.log('Updated data with real commits and contributors');
+      const analysisResult = await response.json();
+      console.log('Received analysis data:', analysisResult);
+
+      // Update data with real analysis data
+      setData(analysisResult);
+      console.log('Updated data with real analysis from backend');
       setHasAnalyzed(true);
     } catch (error) {
-      console.error('Error fetching commits:', error);
+      console.error('Error fetching analysis data:', error);
     } finally {
       setIsAnalyzing(false);
     }
@@ -138,19 +63,19 @@ function App() {
 
   const handleAnalyze = () => {
     console.log('Starting analysis...');
-    fetchCommits();
+    fetchAnalysisData();
   };
 
   // Only automatically fetch when we have repo info and analysis has been triggered
   useEffect(() => {
     if (hasAnalyzed && owner && repo) {
-      fetchCommits();
+      fetchAnalysisData();
     }
   }, [timeWindow, hasAnalyzed, owner, repo]);
 
   const handleRefresh = () => {
     console.log('Refreshing data...');
-    fetchCommits();
+    fetchAnalysisData();
   };
 
   const handleExport = () => {

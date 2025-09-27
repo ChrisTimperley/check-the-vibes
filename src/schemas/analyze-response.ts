@@ -71,6 +71,11 @@ export const analyzeResponseSchema = {
     scores: {
       $ref: 'Scores',
     },
+    direct_pushes: {
+      type: 'array',
+      items: { $ref: 'Commit' },
+      default: [],
+    },
   },
   required: [
     'repo',
@@ -143,6 +148,7 @@ export const pullRequestSchema = {
     },
     ci_status: { $ref: 'CIStatus' },
     url: { $ref: 'URL' },
+    comments: { type: 'integer', minimum: 0 },
   },
   required: [
     'number',
@@ -239,4 +245,20 @@ export const scoresSchema = {
     issues: { type: 'integer', minimum: 0, maximum: 100 },
   },
   required: ['overall'],
+} as const;
+
+export const commitSchema = {
+  $id: 'Commit',
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    sha: { type: 'string' },
+    committer: { type: 'string' },
+    message: { type: 'string' },
+    date: { type: 'string', format: 'date-time' },
+    ci_status: { $ref: 'CIStatus' },
+    additions: { type: 'integer', minimum: 0 },
+    deletions: { type: 'integer', minimum: 0 },
+  },
+  required: ['sha', 'committer', 'message', 'date'],
 } as const;

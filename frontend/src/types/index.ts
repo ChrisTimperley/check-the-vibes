@@ -52,8 +52,9 @@ export interface PullRequest {
   cycle_time_hours: number | null;
   approvals: number;
   reviewers: string[];
-  ci_status: 'pass' | 'fail' | 'none';
+  ci_status: 'success' | 'failure' | 'pending' | 'unknown' | 'none';
   url: string;
+  comments?: number;
 }
 
 export interface Issue {

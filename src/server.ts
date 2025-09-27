@@ -19,6 +19,7 @@ import {
   sizeBucketSchema,
   prStatusSchema,
   ciStatusSchema,
+  commitSchema,
   queryAnalyzeSchema,
 } from './schemas/index.js';
 
@@ -68,6 +69,7 @@ server.addSchema(contributorSchema);
 server.addSchema(pullRequestSchema);
 server.addSchema(issueSchema);
 server.addSchema(projectItemSchema);
+server.addSchema(commitSchema);
 server.addSchema(scoresSchema);
 server.addSchema(analyzeResponseSchema);
 server.addSchema(errorSchema);

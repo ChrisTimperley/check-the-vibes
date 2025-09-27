@@ -224,6 +224,20 @@ export const analyzeRoutes: FastifyPluginAsync = async (fastify) => {
             reviewers: [],
             ci_status: p.ciStatus || 'unknown',
             url: p.url,
+            comments: p.commentCount || 0,
+          })),
+          direct_pushes: commits.map((c) => ({
+            sha: c.sha,
+            committer:
+              c.committer?.login || c.committer || c.author || 'unknown',
+            message: c.commit?.message || c.message || 'No message',
+            date:
+              c.commit?.committer?.date ||
+              c.commit?.author?.date ||
+              new Date().toISOString(),
+            ci_status: 'unknown',
+            additions: 0,
+            deletions: 0,
           })),
           project: { items: [] },
           issues: [],

@@ -33,5 +33,5 @@ export const prStatusSchema = {
 export const ciStatusSchema = {
   $id: 'CIStatus',
   type: 'string',
-  enum: ['pass', 'fail', 'mixed', 'none'],
+  enum: ['success', 'failure', 'pending', 'unknown', 'none'],
 } as const;
