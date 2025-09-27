@@ -33,35 +33,6 @@
     },
     {
       "type": "shell",
-      "label": "server",
-      "command": "npm",
-      "args": ["run", "start:server"],
-      "group": "build",
-      "isBackground": true,
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": false,
-        "panel": "shared"
-      },
-      "problemMatcher": {
-        "pattern": [
-          {
-            "regexp": ".",
-            "file": 1,
-            "location": 2,
-            "message": 3
-          }
-        ],
-        "background": {
-          "activeOnStart": true,
-          "beginsPattern": ".",
-          "endsPattern": "Server listening at"
-        }
-      }
-    },
-    {
-      "type": "shell",
       "label": "clean",
       "command": "npm",
       "args": ["run", "clean"],
@@ -101,37 +72,6 @@
         "panel": "shared"
       },
       "problemMatcher": ["$eslint-stylish"]
-    },
-    {
-      "type": "shell",
-      "label": "frontend",
-      "command": "npm",
-      "args": ["run", "dev:frontend"],
-      "group": "build",
-      "isBackground": true,
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": false,
-        "panel": "shared",
-        "showReuseMessage": true,
-        "clear": false
-      },
-      "problemMatcher": {
-        "pattern": [
-          {
-            "regexp": ".",
-            "file": 1,
-            "location": 2,
-            "message": 3
-          }
-        ],
-        "background": {
-          "activeOnStart": true,
-          "beginsPattern": "VITE",
-          "endsPattern": "ready in \\d+ms"
-        }
-      }
     }
   ]
 }
