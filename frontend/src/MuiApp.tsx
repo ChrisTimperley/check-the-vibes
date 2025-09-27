@@ -1410,7 +1410,7 @@ function App() {
                         <TableRow key={c.sha}>
                           <TableCell>
                             <Link
-                              href={`https://github.com/${data.repo}/commit/${c.sha}`}
+                              href={`https://github.com/${owner}/${repo}/commit/${c.sha}`}
                               target="_blank"
                               rel="noreferrer"
                               sx={{ fontFamily: 'monospace' }}
