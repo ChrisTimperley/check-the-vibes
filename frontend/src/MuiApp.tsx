@@ -187,16 +187,16 @@ function App() {
         {/* Show analysis results only after analysis */}
         {hasAnalyzed && (
           <>
-            <PullRequestsSection
-              pullRequests={data.pull_requests}
-              issues={data.issues}
-            />
-
             <ContributorsSection contributors={data.contributors} />
 
             <IssuesSection
               issues={data.issues}
               projectItems={data.project.items}
+            />
+
+            <PullRequestsSection
+              pullRequests={data.pull_requests}
+              issues={data.issues}
             />
 
             <DirectPushesSection
