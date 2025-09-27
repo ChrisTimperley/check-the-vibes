@@ -85,7 +85,7 @@ export interface Commit {
   committer: string;
   message: string;
   date: string; // ISO timestamp
-  ci_status?: 'pass' | 'fail' | 'unknown' | 'none';
+  ci_status?: 'pass' | 'fail' | 'pending' | 'unknown' | 'none';
   additions?: number;
   deletions?: number;
 }

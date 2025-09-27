@@ -306,6 +306,7 @@ export class GitHubService {
         // Fetch detailed commit info to get additions/deletions
         let additions = 0;
         let deletions = 0;
+        let ciStatus = 'unknown';
 
         try {
           const commitDetail = await this.octokit.repos.getCommit({
@@ -322,6 +323,74 @@ export class GitHubService {
           );
         }
 
+        // Fetch CI status from check runs and status checks
+        try {
+          const [checkRuns, statusChecks] = await Promise.all([
+            this.octokit.checks
+              .listForRef({
+                owner,
+                repo,
+                ref: commit.sha,
+              })
+              .catch(() => ({ data: { check_runs: [] } })),
+            this.octokit.repos
+              .getCombinedStatusForRef({
+                owner,
+                repo,
+                ref: commit.sha,
+              })
+              .catch(() => ({ data: { state: 'none' } })),
+          ]);
+
+          // Determine CI status based on check runs and status checks
+          if (
+            checkRuns.data.check_runs &&
+            checkRuns.data.check_runs.length > 0
+          ) {
+            const hasFailure = checkRuns.data.check_runs.some(
+              (run) =>
+                run.conclusion === 'failure' || run.conclusion === 'cancelled'
+            );
+            const hasSuccess = checkRuns.data.check_runs.some(
+              (run) => run.conclusion === 'success'
+            );
+            const hasPending = checkRuns.data.check_runs.some(
+              (run) => run.status === 'in_progress' || run.status === 'queued'
+            );
+
+            if (hasFailure) ciStatus = 'fail';
+            else if (hasPending) ciStatus = 'pending';
+            else if (hasSuccess) ciStatus = 'pass';
+          } else if (
+            statusChecks.data.state &&
+            statusChecks.data.state !== 'none'
+          ) {
+            // Fall back to status checks
+            switch (statusChecks.data.state) {
+              case 'success':
+                ciStatus = 'pass';
+                break;
+              case 'failure':
+              case 'error':
+                ciStatus = 'fail';
+                break;
+              case 'pending':
+                ciStatus = 'pending';
+                break;
+              default:
+                ciStatus = 'unknown';
+            }
+          } else {
+            ciStatus = 'none';
+          }
+        } catch (error) {
+          console.warn(
+            `Failed to fetch CI status for commit ${commit.sha.slice(0, 7)}:`,
+            error
+          );
+          ciStatus = 'unknown';
+        }
+
         commits.push({
           sha: commit.sha,
           committer:
@@ -330,7 +399,7 @@ export class GitHubService {
           date: commit.commit.author?.date || commit.commit.committer?.date,
           additions,
           deletions,
-          ci_status: 'unknown',
+          ci_status: ciStatus,
         });
       }
 

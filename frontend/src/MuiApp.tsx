@@ -1338,14 +1338,22 @@ function App() {
                       <TableCell>{formatDateTime(c.date)}</TableCell>
                       <TableCell>
                         <Chip
-                          label={c.ci_status ?? 'unknown'}
+                          label={
+                            c.ci_status === 'none'
+                              ? 'No CI'
+                              : c.ci_status === 'pending'
+                                ? 'Pending'
+                                : c.ci_status ?? 'unknown'
+                          }
                           size="small"
                           color={
                             c.ci_status === 'pass'
                               ? 'success'
                               : c.ci_status === 'fail'
                                 ? 'error'
-                                : 'default'
+                                : c.ci_status === 'pending'
+                                  ? 'warning'
+                                  : 'default'
                           }
                         />
                       </TableCell>
