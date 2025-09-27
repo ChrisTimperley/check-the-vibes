@@ -63,7 +63,10 @@ function App() {
     console.log('Exporting data...');
   };
 
-  const getSeverityColor = (value: number, thresholds: { good: number; warning: number }) => {
+  const getSeverityColor = (
+    value: number,
+    thresholds: { good: number; warning: number }
+  ) => {
     if (value >= thresholds.good) return 'success';
     if (value >= thresholds.warning) return 'warning';
     return 'error';
@@ -112,7 +115,10 @@ function App() {
       value: `${Math.round(data.summary.pct_prs_reviewed * 100)}%`,
       icon: CheckCircle,
       description: 'Percentage reviewed',
-      color: getSeverityColor(data.summary.pct_prs_reviewed * 100, { good: 80, warning: 60 }),
+      color: getSeverityColor(data.summary.pct_prs_reviewed * 100, {
+        good: 80,
+        warning: 60,
+      }),
     },
     {
       title: 'Cycle Time',
@@ -126,7 +132,10 @@ function App() {
       value: data.summary.stale_items,
       icon: TrendingUp,
       description: 'Items needing attention',
-      color: getSeverityColor(10 - data.summary.stale_items, { good: 8, warning: 5 }),
+      color: getSeverityColor(10 - data.summary.stale_items, {
+        good: 8,
+        warning: 5,
+      }),
     },
   ];
 
@@ -141,11 +150,20 @@ function App() {
             Check the Vibes - {data.repo}
           </Typography>
 
-          <FormControl variant="outlined" size="small" sx={{ minWidth: 120, mr: 2 }}>
+          <FormControl
+            variant="outlined"
+            size="small"
+            sx={{ minWidth: 120, mr: 2 }}
+          >
             <Select
               value={timeWindow}
               onChange={(e) => setTimeWindow(e.target.value)}
-              sx={{ color: 'white', '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.3)' } }}
+              sx={{
+                color: 'white',
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'rgba(255,255,255,0.3)',
+                },
+              }}
             >
               <MenuItem value="7">Last 7 days</MenuItem>
               <MenuItem value="14">Last 14 days</MenuItem>
@@ -153,10 +171,20 @@ function App() {
             </Select>
           </FormControl>
 
-          <Button color="inherit" startIcon={<Refresh />} onClick={handleRefresh} sx={{ mr: 1 }}>
+          <Button
+            color="inherit"
+            startIcon={<Refresh />}
+            onClick={handleRefresh}
+            sx={{ mr: 1 }}
+          >
             Refresh
           </Button>
-          <Button color="inherit" startIcon={<Download />} onClick={handleExport} sx={{ mr: 1 }}>
+          <Button
+            color="inherit"
+            startIcon={<Download />}
+            onClick={handleExport}
+            sx={{ mr: 1 }}
+          >
             Export
           </Button>
           <IconButton color="inherit">
@@ -171,7 +199,11 @@ function App() {
           {summaryCards.map((card) => {
             const IconComponent = card.icon;
             return (
-              <Card key={card.title} className="metric-card" sx={{ minWidth: 250, flexGrow: 1 }}>
+              <Card
+                key={card.title}
+                className="metric-card"
+                sx={{ minWidth: 250, flexGrow: 1 }}
+              >
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                     <IconComponent
@@ -182,7 +214,11 @@ function App() {
                       {card.title}
                     </Typography>
                   </Box>
-                  <Typography variant="h4" component="div" sx={{ mb: 1, fontWeight: 'bold' }}>
+                  <Typography
+                    variant="h4"
+                    component="div"
+                    sx={{ mb: 1, fontWeight: 'bold' }}
+                  >
                     {card.value}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
@@ -197,7 +233,14 @@ function App() {
         {/* Pull Requests Section */}
         <Card sx={{ mb: 4 }}>
           <CardContent>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                mb: 3,
+              }}
+            >
               <div>
                 <Typography variant="h5" component="h2" gutterBottom>
                   Pull Requests
@@ -213,8 +256,19 @@ function App() {
 
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
               {data.pull_requests.map((pr) => (
-                <Card key={pr.number} variant="outlined" sx={{ p: 2, minWidth: 300, flexGrow: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                <Card
+                  key={pr.number}
+                  variant="outlined"
+                  sx={{ p: 2, minWidth: 300, flexGrow: 1 }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      mb: 1,
+                    }}
+                  >
                     <Typography variant="h6" component="div">
                       #{pr.number}
                     </Typography>
@@ -229,8 +283,13 @@ function App() {
                     {pr.title}
                   </Typography>
 
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    by {pr.author} • {new Date(pr.created_at).toLocaleDateString()}
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mb: 2 }}
+                  >
+                    by {pr.author} •{' '}
+                    {new Date(pr.created_at).toLocaleDateString()}
                   </Typography>
 
                   <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -247,7 +306,9 @@ function App() {
                     <Chip
                       label={pr.linked_issues.length > 0 ? 'Linked' : 'No Link'}
                       size="small"
-                      color={pr.linked_issues.length > 0 ? 'success' : 'warning'}
+                      color={
+                        pr.linked_issues.length > 0 ? 'success' : 'warning'
+                      }
                     />
                     <Chip
                       label={pr.ci_status === 'none' ? 'No CI' : pr.ci_status}
@@ -273,30 +334,74 @@ function App() {
 
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
               {data.contributors.map((contributor) => (
-                <Card key={contributor.login} variant="outlined" sx={{ minWidth: 300, flexGrow: 1 }}>
+                <Card
+                  key={contributor.login}
+                  variant="outlined"
+                  sx={{ minWidth: 300, flexGrow: 1 }}
+                >
                   <CardContent>
                     <Typography variant="h6" component="div" gutterBottom>
                       {contributor.login}
                     </Typography>
 
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        mb: 1,
+                      }}
+                    >
                       <Typography variant="body2">Commits:</Typography>
-                      <Chip label={contributor.commits} size="small" color="primary" />
+                      <Chip
+                        label={contributor.commits}
+                        size="small"
+                        color="primary"
+                      />
                     </Box>
 
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        mb: 1,
+                      }}
+                    >
                       <Typography variant="body2">PRs:</Typography>
-                      <Chip label={contributor.prs} size="small" color="secondary" />
+                      <Chip
+                        label={contributor.prs}
+                        size="small"
+                        color="secondary"
+                      />
                     </Box>
 
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        mb: 1,
+                      }}
+                    >
                       <Typography variant="body2">Reviews:</Typography>
-                      <Chip label={contributor.reviews} size="small" color="info" />
+                      <Chip
+                        label={contributor.reviews}
+                        size="small"
+                        color="info"
+                      />
                     </Box>
 
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        mb: 1,
+                      }}
+                    >
                       <Typography variant="body2">Issues:</Typography>
-                      <Chip label={contributor.issues} size="small" color="warning" />
+                      <Chip
+                        label={contributor.issues}
+                        size="small"
+                        color="warning"
+                      />
                     </Box>
 
                     {contributor.direct_pushes_default > 0 && (
@@ -327,8 +432,19 @@ function App() {
 
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
               {data.issues.map((issue) => (
-                <Card key={issue.number} variant="outlined" sx={{ p: 2, minWidth: 350, flexGrow: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                <Card
+                  key={issue.number}
+                  variant="outlined"
+                  sx={{ p: 2, minWidth: 350, flexGrow: 1 }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      mb: 1,
+                    }}
+                  >
                     <Typography variant="h6" component="div">
                       #{issue.number}
                     </Typography>
@@ -343,13 +459,22 @@ function App() {
                     {issue.title}
                   </Typography>
 
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    by {issue.author} • {new Date(issue.created_at).toLocaleDateString()}
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mb: 2 }}
+                  >
+                    by {issue.author} •{' '}
+                    {new Date(issue.created_at).toLocaleDateString()}
                   </Typography>
 
                   {issue.assignees.length > 0 && (
                     <Box sx={{ mb: 1 }}>
-                      <Typography variant="body2" component="span" sx={{ mr: 1 }}>
+                      <Typography
+                        variant="body2"
+                        component="span"
+                        sx={{ mr: 1 }}
+                      >
                         Assigned to:
                       </Typography>
                       {issue.assignees.map((assignee) => (
@@ -399,11 +524,12 @@ function App() {
             borderRadius: 1,
             display: 'flex',
             justifyContent: 'center',
-            alignItems: 'center'
+            alignItems: 'center',
           }}
         >
           <Typography variant="body2" color="text.secondary">
-            Analysis window: {new Date(data.window.from).toLocaleDateString()} - {new Date(data.window.to).toLocaleDateString()}
+            Analysis window: {new Date(data.window.from).toLocaleDateString()} -{' '}
+            {new Date(data.window.to).toLocaleDateString()}
           </Typography>
         </Box>
       </Container>
