@@ -39,7 +39,7 @@ A web application that analyzes GitHub repositories to assess software engineeri
    npm run dev
    ```
 
-4. **Open your browser** to `http://localhost:5173`
+4. **Open your browser** to `http://localhost:3000`
 
 ## Usage
 
