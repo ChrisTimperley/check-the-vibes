@@ -26,7 +26,8 @@
         "ms-vscode.vscode-typescript-next",
         "esbenp.prettier-vscode",
         "ms-vscode.vscode-eslint",
-        "ms-vscode.vscode-json"
+        "ms-vscode.vscode-json",
+        "42crunch.vscode-openapi"
       ]
     }
   },
