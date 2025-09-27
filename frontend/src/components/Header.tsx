@@ -9,11 +9,7 @@ import {
   MenuItem,
   FormControl,
 } from '@mui/material';
-import {
-  Refresh,
-  Download,
-  Settings,
-} from '@mui/icons-material';
+import { Refresh, Download, Settings, Edit } from '@mui/icons-material';
 
 interface HeaderProps {
   hasAnalyzed: boolean;
@@ -23,6 +19,7 @@ interface HeaderProps {
   onTimeWindowChange: (value: string) => void;
   onRefresh: () => void;
   onExport: () => void;
+  onChangeRepository: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -33,13 +30,13 @@ export const Header: React.FC<HeaderProps> = ({
   onTimeWindowChange,
   onRefresh,
   onExport,
+  onChangeRepository,
 }) => {
   return (
     <AppBar position="static" className="dashboard-header">
       <Toolbar>
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          Check the Vibes{' '}
-          {hasAnalyzed && owner && repo && `- ${owner}/${repo}`}
+          Check the Vibes {hasAnalyzed && owner && repo && `- ${owner}/${repo}`}
         </Typography>
 
         <FormControl
@@ -62,6 +59,17 @@ export const Header: React.FC<HeaderProps> = ({
             <MenuItem value="30">Last 30 days</MenuItem>
           </Select>
         </FormControl>
+
+        {hasAnalyzed && (
+          <Button
+            color="inherit"
+            startIcon={<Edit />}
+            onClick={onChangeRepository}
+            sx={{ mr: 1 }}
+          >
+            Change Repository
+          </Button>
+        )}
 
         <Button
           color="inherit"

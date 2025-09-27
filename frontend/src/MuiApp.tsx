@@ -21,6 +21,7 @@ function App() {
   const [repo, setRepo] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [hasAnalyzed, setHasAnalyzed] = useState(false);
+  const [showRepositoryInput, setShowRepositoryInput] = useState(false);
 
   const fetchAnalysisData = async () => {
     if (!owner || !repo) {
@@ -63,6 +64,7 @@ function App() {
 
   const handleAnalyze = () => {
     console.log('Starting analysis...');
+    setShowRepositoryInput(false);
     fetchAnalysisData();
   };
 
@@ -82,6 +84,16 @@ function App() {
     console.log('Exporting data...');
   };
 
+  const handleChangeRepository = () => {
+    console.log('Changing repository...');
+    setShowRepositoryInput(true);
+  };
+
+  const handleCancelChangeRepository = () => {
+    console.log('Canceling repository change...');
+    setShowRepositoryInput(false);
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -94,11 +106,12 @@ function App() {
         onTimeWindowChange={setTimeWindow}
         onRefresh={handleRefresh}
         onExport={handleExport}
+        onChangeRepository={handleChangeRepository}
       />
 
       <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
-        {/* Repository Input Form - Show only when no analysis has been done */}
-        {!hasAnalyzed && (
+        {/* Repository Input Form - Show when no analysis has been done OR when user wants to change repo */}
+        {(!hasAnalyzed || showRepositoryInput) && (
           <RepositoryInput
             owner={owner}
             repo={repo}
@@ -106,11 +119,13 @@ function App() {
             onOwnerChange={setOwner}
             onRepoChange={setRepo}
             onAnalyze={handleAnalyze}
+            onCancel={handleCancelChangeRepository}
+            showCancel={hasAnalyzed && showRepositoryInput}
           />
         )}
 
-        {/* Show analysis results only after analysis */}
-        {hasAnalyzed && (
+        {/* Show analysis results only after analysis and when not changing repository */}
+        {hasAnalyzed && !showRepositoryInput && (
           <>
             <ContributorsSection contributors={data.contributors} />
 

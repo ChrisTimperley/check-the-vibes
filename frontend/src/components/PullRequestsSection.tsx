@@ -185,7 +185,7 @@ export const PullRequestsSection: React.FC<PullRequestsSectionProps> = ({
                       maxWidth: 300,
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
+                      whiteSpace: 'nowrap',
                     }}
                   >
                     {truncateTitle(pr.title)}

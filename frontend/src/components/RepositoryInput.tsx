@@ -1,12 +1,6 @@
 import React from 'react';
-import {
-  Typography,
-  Button,
-  TextField,
-  Box,
-  Paper,
-} from '@mui/material';
-import { Search } from '@mui/icons-material';
+import { Typography, Button, TextField, Box, Paper } from '@mui/material';
+import { Search, Cancel } from '@mui/icons-material';
 
 interface RepositoryInputProps {
   owner: string;
@@ -15,6 +9,8 @@ interface RepositoryInputProps {
   onOwnerChange: (value: string) => void;
   onRepoChange: (value: string) => void;
   onAnalyze: () => void;
+  onCancel?: () => void;
+  showCancel?: boolean;
 }
 
 export const RepositoryInput: React.FC<RepositoryInputProps> = ({
@@ -24,6 +20,8 @@ export const RepositoryInput: React.FC<RepositoryInputProps> = ({
   onOwnerChange,
   onRepoChange,
   onAnalyze,
+  onCancel,
+  showCancel = false,
 }) => {
   return (
     <Paper sx={{ p: 3, mb: 4 }}>
@@ -31,8 +29,7 @@ export const RepositoryInput: React.FC<RepositoryInputProps> = ({
         Repository Analysis
       </Typography>
       <Typography variant="body1" sx={{ mb: 3, color: 'text.secondary' }}>
-        Enter a GitHub repository to analyze its development workflow and
-        vibes.
+        Enter a GitHub repository to analyze its development workflow and vibes.
       </Typography>
       <Box
         sx={{
@@ -68,6 +65,18 @@ export const RepositoryInput: React.FC<RepositoryInputProps> = ({
         >
           {isAnalyzing ? 'Analyzing...' : 'Analyze Repository'}
         </Button>
+        {showCancel && (
+          <Button
+            variant="outlined"
+            size="large"
+            startIcon={<Cancel />}
+            onClick={onCancel}
+            disabled={isAnalyzing}
+            sx={{ py: 1.5, minWidth: 120 }}
+          >
+            Cancel
+          </Button>
+        )}
       </Box>
     </Paper>
   );

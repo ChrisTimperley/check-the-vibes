@@ -291,7 +291,7 @@ export const IssuesSection: React.FC<IssuesSectionProps> = ({
                       maxWidth: 300,
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
+                      whiteSpace: 'nowrap',
                     }}
                   >
                     {truncateTitle(issue.title)}
