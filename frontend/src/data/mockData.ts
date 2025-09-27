@@ -252,12 +252,4 @@ export const mockAnalysisData: AnalysisReport = {
     conventional_commits_rate: 0.62,
     dependabot: true,
   },
-  scores: {
-    overall: 78,
-    contributors: 70,
-    prs: 82,
-    project: 65,
-    issues: 75,
-    hygiene: 90,
-  },
 };

@@ -20,14 +20,6 @@ export interface AnalysisReport {
   };
   issues: Issue[];
   hygiene: HygieneChecks;
-  scores: {
-    overall: number;
-    contributors: number;
-    prs: number;
-    project: number;
-    issues: number;
-    hygiene: number;
-  };
 }
 
 export interface Contributor {

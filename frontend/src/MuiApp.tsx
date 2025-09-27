@@ -398,15 +398,12 @@ function App() {
             bgcolor: 'background.paper',
             borderRadius: 1,
             display: 'flex',
-            justifyContent: 'space-between',
+            justifyContent: 'center',
             alignItems: 'center'
           }}
         >
           <Typography variant="body2" color="text.secondary">
             Analysis window: {new Date(data.window.from).toLocaleDateString()} - {new Date(data.window.to).toLocaleDateString()}
-          </Typography>
-          <Typography variant="body2">
-            Overall Score: <strong>{data.scores.overall}/100</strong>
           </Typography>
         </Box>
       </Container>
