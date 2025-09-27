@@ -15,7 +15,7 @@ import {
 } from '@mui/material';
 import { Settings } from '@mui/icons-material';
 import { Issue, ProjectItem } from '../types';
-import { formatDate, formatDurationMinutes, formatDurationHours } from '../utils/dateUtils';
+import { formatDate, formatDurationHours } from '../utils/dateUtils';
 
 interface IssuesSectionProps {
   issues: Issue[];
@@ -61,7 +61,7 @@ export const IssuesSection: React.FC<IssuesSectionProps> = ({
               <TableCell sx={{ fontWeight: 700 }}>Title</TableCell>
               <TableCell sx={{ fontWeight: 700 }}>Author</TableCell>
               <TableCell sx={{ fontWeight: 700 }}>Created</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>First Response</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Comments</TableCell>
               <TableCell sx={{ fontWeight: 700 }}>Closed?</TableCell>
               <TableCell sx={{ fontWeight: 700 }}>Time to Close</TableCell>
               <TableCell sx={{ fontWeight: 700 }}>Assignees</TableCell>
@@ -190,7 +190,7 @@ export const IssuesSection: React.FC<IssuesSectionProps> = ({
                     </Link>
                   </TableCell>
                   <TableCell>{formatDate(issue.created_at)}</TableCell>
-                  <TableCell>{formatDurationMinutes(issue.time_to_first_response_minutes)}</TableCell>
+                  <TableCell>{issue.comments ?? 0}</TableCell>
                   <TableCell>
                     <Chip
                       label={issue.closed_at ? 'Closed' : 'Open'}
