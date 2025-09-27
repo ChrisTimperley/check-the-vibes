@@ -41,7 +41,9 @@
   "dependencies": {
     "@fastify/swagger": "^8.15.0",
     "@fastify/swagger-ui": "^4.1.0",
+    "@octokit/graphql": "^9.0.1",
     "@octokit/rest": "^22.0.0",
+    "bottleneck": "^2.19.5",
     "commander": "^14.0.1",
     "dotenv": "^17.2.2",
     "fastify": "^4.28.1",
