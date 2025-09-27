@@ -122,6 +122,8 @@ function App() {
             <PullRequestsSection
               pullRequests={data.pull_requests}
               issues={data.issues}
+              owner={owner}
+              repo={repo}
             />
 
             <DirectPushesSection

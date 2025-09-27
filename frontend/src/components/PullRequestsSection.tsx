@@ -19,11 +19,15 @@ import { PullRequest, Issue } from '../types';
 interface PullRequestsSectionProps {
   pullRequests: PullRequest[];
   issues: Issue[];
+  owner: string;
+  repo: string;
 }
 
 export const PullRequestsSection: React.FC<PullRequestsSectionProps> = ({
   pullRequests,
   issues,
+  owner,
+  repo,
 }) => {
   return (
     <Card sx={{ mb: 4 }}>
@@ -66,19 +70,48 @@ export const PullRequestsSection: React.FC<PullRequestsSectionProps> = ({
             {pullRequests.map((pr) => {
               // Use comments directly from PR data, or fallback to deriving from linked issues
               let comments = pr.comments ?? 0;
-              let linkedIssueLabel = '—';
+              let linkedIssueElement = <span>—</span>;
 
               if (pr.linked_issues && pr.linked_issues.length > 0) {
-                const first = pr.linked_issues[0];
-                linkedIssueLabel = `#${first}`;
-                // If we don't have comments from PR data, try to get from issues
+                // If we don't have comments from PR data, try to get from first linked issue
                 if (pr.comments === undefined) {
-                  const issue = issues.find((i) => i.number === first);
+                  const issue = issues.find((i) => i.number === pr.linked_issues[0]);
                   comments = issue?.comments ?? 0;
                 }
-              }
 
-              const reviewerName =
+                // Handle multiple linked issues
+                if (pr.linked_issues.length === 1) {
+                  const issueNum = pr.linked_issues[0];
+                  const issueUrl = `https://github.com/${owner}/${repo}/issues/${issueNum}`;
+                  linkedIssueElement = (
+                    <Link
+                      href={issueUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      #{issueNum}
+                    </Link>
+                  );
+                } else {
+                  // Multiple issues - show them as separate links
+                  linkedIssueElement = (
+                    <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                      {pr.linked_issues.map((issueNum, index) => (
+                        <span key={issueNum}>
+                          <Link
+                            href={`https://github.com/${owner}/${repo}/issues/${issueNum}`}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            #{issueNum}
+                          </Link>
+                          {index < pr.linked_issues.length - 1 && ', '}
+                        </span>
+                      ))}
+                    </Box>
+                  );
+                }
+              }              const reviewerName =
                 pr.reviewers && pr.reviewers.length > 0
                   ? pr.reviewers[0]
                   : null;
@@ -114,7 +147,7 @@ export const PullRequestsSection: React.FC<PullRequestsSectionProps> = ({
                     )}
                   </TableCell>
                   <TableCell>{comments}</TableCell>
-                  <TableCell>{linkedIssueLabel}</TableCell>
+                  <TableCell>{linkedIssueElement}</TableCell>
                   <TableCell>
                     <Chip
                       label={
