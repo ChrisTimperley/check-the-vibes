@@ -15,6 +15,7 @@ export interface AnalysisReport {
   };
   contributors: Contributor[];
   pull_requests: PullRequest[];
+  direct_pushes?: Commit[];
   project: {
     items: ProjectItem[];
   };
@@ -77,6 +78,16 @@ export interface ProjectItem {
   labels: string[];
   linked_artifact: string | null;
   age_days: number;
+}
+
+export interface Commit {
+  sha: string; // full SHA
+  committer: string;
+  message: string;
+  date: string; // ISO timestamp
+  ci_status?: 'pass' | 'fail' | 'unknown' | 'none';
+  additions?: number;
+  deletions?: number;
 }
 
 export interface HygieneChecks {

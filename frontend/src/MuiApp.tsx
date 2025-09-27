@@ -13,6 +13,12 @@ import {
   FormControl,
   Box,
   Chip,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  Link,
 } from '@mui/material';
 import {
   Refresh,
@@ -52,12 +58,49 @@ const theme = createTheme({
   },
 });
 
+const MONTHS_SHORT = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sept',
+  'Oct',
+  'Nov',
+  'Dec',
+];
+
+const formatDate = (iso?: string) => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  const day = d.getDate();
+  const month = MONTHS_SHORT[d.getMonth()] || '';
+  const year = d.getFullYear();
+  return `${day} ${month} ${year}`;
+};
+
 function App() {
   const [data] = useState(mockAnalysisData);
   const [timeWindow, setTimeWindow] = useState('14');
 
   const handleRefresh = () => {
     console.log('Refreshing data...');
+  };
+
+  const formatDateTime = (iso?: string) => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return iso;
+    const date = formatDate(iso);
+    const time = d.toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+    return `${date} ${time}`;
   };
 
   const handleExport = () => {
@@ -289,8 +332,7 @@ function App() {
                     color="text.secondary"
                     sx={{ mb: 2 }}
                   >
-                    by {pr.author} •{' '}
-                    {new Date(pr.created_at).toLocaleDateString()}
+                    by {pr.author} • {formatDate(pr.created_at)}
                   </Typography>
 
                   <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -465,8 +507,7 @@ function App() {
                     color="text.secondary"
                     sx={{ mb: 2 }}
                   >
-                    by {issue.author} •{' '}
-                    {new Date(issue.created_at).toLocaleDateString()}
+                    by {issue.author} • {formatDate(issue.created_at)}
                   </Typography>
 
                   {/* Issue checks: project board membership, has labels, comments */}
@@ -1192,6 +1233,101 @@ function App() {
           </CardContent>
         </Card>
 
+        {/* Direct Pushes Section */}
+        <Card sx={{ mb: 4 }}>
+          <CardContent>
+            <Box
+              sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}
+            >
+              <div>
+                <Typography variant="h5" component="h2" gutterBottom>
+                  Direct Pushes to main
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Commits pushed directly to the default branch in this period
+                </Typography>
+              </div>
+            </Box>
+
+            {data.direct_pushes && data.direct_pushes.length > 0 ? (
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 700 }}>SHA</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Committer</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Message</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Lines</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Date</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>CI</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {data.direct_pushes.map((c) => (
+                    <TableRow key={c.sha}>
+                      <TableCell>
+                        <Link
+                          href={`https://github.com/${data.repo}/commit/${c.sha}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          sx={{ fontFamily: 'monospace' }}
+                        >
+                          {c.sha.slice(0, 7)}
+                        </Link>
+                      </TableCell>
+                      <TableCell>
+                        <Link
+                          href={`https://github.com/${c.committer}`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {c.committer}
+                        </Link>
+                      </TableCell>
+                      <TableCell sx={{ maxWidth: 400 }}>{c.message}</TableCell>
+                      <TableCell>
+                        <Box
+                          sx={{ display: 'flex', gap: 1, alignItems: 'center' }}
+                        >
+                          <Chip
+                            label={`+${c.additions ?? 0}`}
+                            size="small"
+                            color="success"
+                            sx={{ fontWeight: 600 }}
+                          />
+                          <Chip
+                            label={`-${c.deletions ?? 0}`}
+                            size="small"
+                            color="error"
+                            sx={{ fontWeight: 600 }}
+                          />
+                        </Box>
+                      </TableCell>
+                      <TableCell>{formatDateTime(c.date)}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={c.ci_status ?? 'unknown'}
+                          size="small"
+                          color={
+                            c.ci_status === 'pass'
+                              ? 'success'
+                              : c.ci_status === 'fail'
+                                ? 'error'
+                                : 'default'
+                          }
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                No direct pushes detected in this period
+              </Typography>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Footer */}
         <Box
           sx={{
@@ -1205,8 +1341,8 @@ function App() {
           }}
         >
           <Typography variant="body2" color="text.secondary">
-            Analysis window: {new Date(data.window.from).toLocaleDateString()} -{' '}
-            {new Date(data.window.to).toLocaleDateString()}
+            Analysis window: {formatDate(data.window.from)} -{' '}
+            {formatDate(data.window.to)}
           </Typography>
         </Box>
       </Container>

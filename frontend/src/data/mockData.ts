@@ -320,4 +320,33 @@ export const mockAnalysisData: AnalysisReport = {
     },
     stale_issue_management: true,
   },
+  direct_pushes: [
+    {
+      sha: 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t',
+      committer: 'bob',
+      message: 'Fix typo in README',
+      date: '2025-09-24T09:12:00Z',
+      ci_status: 'pass',
+      additions: 3,
+      deletions: 1,
+    },
+    {
+      sha: 'b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0a',
+      committer: 'dave',
+      message: 'Hotfix: handle null pointers',
+      date: '2025-09-25T14:30:22Z',
+      ci_status: 'fail',
+      additions: 25,
+      deletions: 7,
+    },
+    {
+      sha: 'c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0ab1',
+      committer: 'eve',
+      message: 'Update dependencies',
+      date: '2025-09-26T16:45:10Z',
+      ci_status: 'unknown',
+      additions: 120,
+      deletions: 112,
+    },
+  ],
 };
