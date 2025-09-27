@@ -240,21 +240,7 @@ function App() {
     console.log('Exporting data...');
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'merged':
-      case 'closed':
-      case 'pass':
-        return 'success';
-      case 'open':
-      case 'draft':
-        return 'warning';
-      case 'fail':
-        return 'error';
-      default:
-        return 'default';
-    }
-  };
+  // status color helper removed — unused after rendering changes
 
   return (
     <ThemeProvider theme={theme}>
@@ -365,7 +351,7 @@ function App() {
           <>
             {/* summary widgets removed per request */}
 
-            {/* Pull Requests Section */}
+            {/* Pull Requests Section — rendered as a table per request */}
             <Card sx={{ mb: 4 }}>
               <CardContent>
                 <Box
@@ -389,77 +375,126 @@ function App() {
                   </Button>
                 </Box>
 
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                  {data.pull_requests.map((pr) => (
-                    <Card
-                      key={pr.number}
-                      variant="outlined"
-                      sx={{ p: 2, minWidth: 300, flexGrow: 1 }}
-                    >
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          mb: 1,
-                        }}
-                      >
-                        <Typography variant="h6" component="div">
-                          #{pr.number}
-                        </Typography>
-                        <Chip
-                          label={pr.status}
-                          color={getStatusColor(pr.status) as any}
-                          size="small"
-                        />
-                      </Box>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 700 }}>PR #</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>Title</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>Author</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>Reviewer</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>Comments</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>
+                        Linked Issue
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>CI</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>
+                        Lines Changed
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {data.pull_requests.map((pr) => {
+                      // derive comments count from linked issues when available
+                      let comments = 0;
+                      let linkedIssueLabel = '—';
+                      if (pr.linked_issues && pr.linked_issues.length > 0) {
+                        const first = pr.linked_issues[0];
+                        const issue = data.issues.find(
+                          (i) => i.number === first
+                        );
+                        comments = issue?.comments ?? 0;
+                        linkedIssueLabel = `#${first}`;
+                      }
+                      const reviewerName =
+                        pr.reviewers && pr.reviewers.length > 0
+                          ? pr.reviewers[0]
+                          : null;
+                      // linesChanged is displayed using additions/deletions chips below
 
-                      <Typography
-                        variant="body1"
-                        sx={{ mb: 1, fontWeight: 500 }}
-                      >
-                        {pr.title}
-                      </Typography>
-
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ mb: 2 }}
-                      >
-                        by {pr.author} • {formatDate(pr.created_at)}
-                      </Typography>
-
-                      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                        <Chip
-                          label={pr.size_bucket}
-                          size="small"
-                          variant="outlined"
-                        />
-                        <Chip
-                          label={pr.reviewed ? 'Reviewed' : 'Not Reviewed'}
-                          size="small"
-                          color={pr.reviewed ? 'success' : 'error'}
-                        />
-                        <Chip
-                          label={
-                            pr.linked_issues.length > 0 ? 'Linked' : 'No Link'
-                          }
-                          size="small"
-                          color={
-                            pr.linked_issues.length > 0 ? 'success' : 'warning'
-                          }
-                        />
-                        <Chip
-                          label={
-                            pr.ci_status === 'none' ? 'No CI' : pr.ci_status
-                          }
-                          size="small"
-                          color={getStatusColor(pr.ci_status) as any}
-                        />
-                      </Box>
-                    </Card>
-                  ))}
-                </Box>
+                      return (
+                        <TableRow key={pr.number}>
+                          <TableCell>
+                            <Link
+                              href={pr.url}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              #{pr.number}
+                            </Link>
+                          </TableCell>
+                          <TableCell>{pr.title}</TableCell>
+                          <TableCell>
+                            <Link
+                              href={`https://github.com/${pr.author}`}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {pr.author}
+                            </Link>
+                          </TableCell>
+                          <TableCell>
+                            {reviewerName ? (
+                              <Link
+                                href={`https://github.com/${reviewerName}`}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                {reviewerName}
+                              </Link>
+                            ) : (
+                              '—'
+                            )}
+                          </TableCell>
+                          <TableCell>{comments}</TableCell>
+                          <TableCell>{linkedIssueLabel}</TableCell>
+                          <TableCell>
+                            <Chip
+                              label={
+                                pr.ci_status === 'none'
+                                  ? 'No CI'
+                                  : pr.ci_status === 'pass'
+                                    ? 'pass'
+                                    : pr.ci_status === 'fail'
+                                      ? 'fail'
+                                      : pr.ci_status
+                              }
+                              size="small"
+                              color={
+                                pr.ci_status === 'pass'
+                                  ? 'success'
+                                  : pr.ci_status === 'fail'
+                                    ? 'error'
+                                    : 'default'
+                              }
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                gap: 1,
+                                alignItems: 'center',
+                              }}
+                            >
+                              <Chip
+                                label={`+${pr.additions ?? 0}`}
+                                size="small"
+                                color="success"
+                                sx={{ fontWeight: 600 }}
+                              />
+                              <Chip
+                                label={`-${pr.deletions ?? 0}`}
+                                size="small"
+                                color="error"
+                                sx={{ fontWeight: 600 }}
+                              />
+                            </Box>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
               </CardContent>
             </Card>
 
