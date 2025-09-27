@@ -303,104 +303,152 @@ export class GitHubService {
       }
 
       for (const commit of response.data) {
-        // Fetch detailed commit info to get additions/deletions
-        let additions = 0;
-        let deletions = 0;
-        let ciStatus = 'unknown';
-
         try {
           const commitDetail = await this.octokit.repos.getCommit({
             owner,
             repo,
             ref: commit.sha,
           });
-          additions = commitDetail.data.stats?.additions || 0;
-          deletions = commitDetail.data.stats?.deletions || 0;
-        } catch (error) {
-          console.warn(
-            `Failed to fetch stats for commit ${commit.sha.slice(0, 7)}:`,
-            error
-          );
-        }
 
-        // Fetch CI status from check runs and status checks
-        try {
-          const [checkRuns, statusChecks] = await Promise.all([
-            this.octokit.checks
-              .listForRef({
-                owner,
-                repo,
-                ref: commit.sha,
-              })
-              .catch(() => ({ data: { check_runs: [] } })),
-            this.octokit.repos
-              .getCombinedStatusForRef({
-                owner,
-                repo,
-                ref: commit.sha,
-              })
-              .catch(() => ({ data: { state: 'none' } })),
-          ]);
+          // We want:
+          // 1. Direct pushes (single parent commits that went directly to main)
+          // 2. Merge commits (multiple parents)
+          // We DON'T want: commits that were part of PR branches before being merged
 
-          // Determine CI status based on check runs and status checks
-          if (
-            checkRuns.data.check_runs &&
-            checkRuns.data.check_runs.length > 0
-          ) {
-            const hasFailure = checkRuns.data.check_runs.some(
-              (run) =>
-                run.conclusion === 'failure' || run.conclusion === 'cancelled'
-            );
-            const hasSuccess = checkRuns.data.check_runs.some(
-              (run) => run.conclusion === 'success'
-            );
-            const hasPending = checkRuns.data.check_runs.some(
-              (run) => run.status === 'in_progress' || run.status === 'queued'
-            );
+          const parentCount = commitDetail.data.parents
+            ? commitDetail.data.parents.length
+            : 0;
+          const isDirectPush = parentCount === 1;
+          const isMergeCommit = parentCount > 1;
 
-            if (hasFailure) ciStatus = 'fail';
-            else if (hasPending) ciStatus = 'pending';
-            else if (hasSuccess) ciStatus = 'pass';
-          } else if (
-            statusChecks.data.state &&
-            statusChecks.data.state !== 'none'
-          ) {
-            // Fall back to status checks
-            switch (statusChecks.data.state) {
-              case 'success':
-                ciStatus = 'pass';
-                break;
-              case 'failure':
-              case 'error':
-                ciStatus = 'fail';
-                break;
-              case 'pending':
-                ciStatus = 'pending';
-                break;
-              default:
-                ciStatus = 'unknown';
+          // Skip commits that are likely from PR branches
+          // These are typically single-parent commits that have "merge" in their ancestry
+          // but aren't direct pushes to main
+          if (isDirectPush) {
+            // For single-parent commits, we need to determine if this was a direct push
+            // or if it came from a PR branch that was later merged
+
+            // Simple heuristic: if the commit message looks like a PR commit
+            // (has common PR patterns), skip it
+            const commitMessage = commit.commit.message.toLowerCase();
+            const looksLikePRCommit =
+              commitMessage.includes('feat:') ||
+              commitMessage.includes('fix:') ||
+              commitMessage.includes('chore:') ||
+              commitMessage.includes('docs:') ||
+              commitMessage.includes('refactor:') ||
+              commitMessage.includes('test:') ||
+              (commitMessage.includes('(') && commitMessage.includes(')')); // conventional commits
+
+            if (looksLikePRCommit) {
+              console.log(
+                `❌ Skipping PR branch commit: ${commit.sha.slice(0, 7)} - "${commit.commit.message.split('\n')[0]}"`
+              );
+              continue;
+            } else {
+              console.log(
+                `📋 Including direct push: ${commit.sha.slice(0, 7)} - "${commit.commit.message.split('\n')[0]}"`
+              );
             }
+          } else if (isMergeCommit) {
+            console.log(
+              `� Including merge commit: ${commit.sha.slice(0, 7)} - "${commit.commit.message.split('\n')[0]}"`
+            );
           } else {
-            ciStatus = 'none';
+            // No parents or unusual structure - include to be safe
+            console.log(`📋 Including commit: ${commit.sha.slice(0, 7)}`);
           }
+
+          // Fetch detailed stats and CI status for included commits
+          let additions = commitDetail.data.stats?.additions || 0;
+          let deletions = commitDetail.data.stats?.deletions || 0;
+          let ciStatus = 'unknown';
+
+          // Fetch CI status from check runs and status checks
+          try {
+            const [checkRuns, statusChecks] = await Promise.all([
+              this.octokit.checks
+                .listForRef({
+                  owner,
+                  repo,
+                  ref: commit.sha,
+                })
+                .catch(() => ({ data: { check_runs: [] } })),
+              this.octokit.repos
+                .getCombinedStatusForRef({
+                  owner,
+                  repo,
+                  ref: commit.sha,
+                })
+                .catch(() => ({ data: { state: 'none' } })),
+            ]);
+
+            // Determine CI status based on check runs and status checks
+            if (
+              checkRuns.data.check_runs &&
+              checkRuns.data.check_runs.length > 0
+            ) {
+              const hasFailure = checkRuns.data.check_runs.some(
+                (run) =>
+                  run.conclusion === 'failure' || run.conclusion === 'cancelled'
+              );
+              const hasSuccess = checkRuns.data.check_runs.some(
+                (run) => run.conclusion === 'success'
+              );
+              const hasPending = checkRuns.data.check_runs.some(
+                (run) => run.status === 'in_progress' || run.status === 'queued'
+              );
+
+              if (hasFailure) ciStatus = 'fail';
+              else if (hasPending) ciStatus = 'pending';
+              else if (hasSuccess) ciStatus = 'pass';
+            } else if (
+              statusChecks.data.state &&
+              statusChecks.data.state !== 'none'
+            ) {
+              // Fall back to status checks
+              switch (statusChecks.data.state) {
+                case 'success':
+                  ciStatus = 'pass';
+                  break;
+                case 'failure':
+                case 'error':
+                  ciStatus = 'fail';
+                  break;
+                case 'pending':
+                  ciStatus = 'pending';
+                  break;
+                default:
+                  ciStatus = 'unknown';
+              }
+            } else {
+              ciStatus = 'none';
+            }
+          } catch (error) {
+            console.warn(
+              `Failed to fetch CI status for commit ${commit.sha.slice(0, 7)}:`,
+              error
+            );
+            ciStatus = 'unknown';
+          }
+
+          commits.push({
+            sha: commit.sha,
+            committer:
+              commit.author?.login || commit.commit.author?.name || 'Unknown',
+            message: commit.commit.message,
+            date: commit.commit.author?.date || commit.commit.committer?.date,
+            additions,
+            deletions,
+            ci_status: ciStatus,
+          });
         } catch (error) {
           console.warn(
-            `Failed to fetch CI status for commit ${commit.sha.slice(0, 7)}:`,
+            `Failed to fetch commit details for ${commit.sha.slice(0, 7)}:`,
             error
           );
-          ciStatus = 'unknown';
+          continue;
         }
-
-        commits.push({
-          sha: commit.sha,
-          committer:
-            commit.author?.login || commit.commit.author?.name || 'Unknown',
-          message: commit.commit.message,
-          date: commit.commit.author?.date || commit.commit.committer?.date,
-          additions,
-          deletions,
-          ci_status: ciStatus,
-        });
       }
 
       if (response.data.length < perPage) {

@@ -1343,7 +1343,7 @@ function App() {
                               ? 'No CI'
                               : c.ci_status === 'pending'
                                 ? 'Pending'
-                                : c.ci_status ?? 'unknown'
+                                : (c.ci_status ?? 'unknown')
                           }
                           size="small"
                           color={
