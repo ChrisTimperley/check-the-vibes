@@ -19,11 +19,28 @@ Check-the-vibes is a web application that analyzes GitHub repositories to assess
 
 ## Development Setup
 
+### Standard Setup
 1. Requires Node.js 22+ and npm 10+
 2. Run `npm install` to install dependencies
 3. Create `.env` file with `GITHUB_TOKEN=your_token_here`
 4. Use `npm run dev` to start both frontend and backend
 5. Frontend runs on port 3000, backend on port 8080
+
+### Dev Container Support
+The repository includes VS Code DevContainer configuration (`.devcontainer/devcontainer.json`) for a complete development environment with:
+- Node.js 22 runtime with TypeScript support
+- Pre-installed extensions (ESLint, Prettier, TypeScript, OpenAPI)
+- Auto-configured settings for consistent code formatting
+- GitHub CLI, Git, Python, and pre-commit hooks
+- Automatic dependency installation and pre-commit setup
+
+### VS Code Tasks
+Predefined VS Code tasks are available in `.vscode/tasks.json`:
+- **Build**: `npm run build` with TypeScript problem matching
+- **Dev**: `npm run dev` to start development servers
+- **Test**: `npm run test` with test problem matching  
+- **Lint**: `npm run lint` with ESLint problem matching
+- **Clean**: `npm run clean` to remove build artifacts
 
 ## Code Organization
 
