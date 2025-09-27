@@ -319,8 +319,6 @@ components:
           default: []
         hygiene:
           $ref: '#/components/schemas/Hygiene'
-        scores:
-          $ref: '#/components/schemas/Scores'
       required:
         [
           repo,
@@ -491,18 +489,6 @@ components:
         conventional_commits_rate: { type: number, minimum: 0, maximum: 1 }
         dependabot: { type: boolean }
       required: [branch_protection, codeowners, ci_present, license]
-
-    Scores:
-      type: object
-      additionalProperties: false
-      properties:
-        overall: { type: integer, minimum: 0, maximum: 100 }
-        contributors: { type: integer, minimum: 0, maximum: 100 }
-        prs: { type: integer, minimum: 0, maximum: 100 }
-        project: { type: integer, minimum: 0, maximum: 100 }
-        issues: { type: integer, minimum: 0, maximum: 100 }
-        hygiene: { type: integer, minimum: 0, maximum: 100 }
-      required: [overall]
 
     Error:
       type: object
