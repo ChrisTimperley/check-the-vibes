@@ -38,11 +38,10 @@ export const DirectPushesSection: React.FC<DirectPushesSectionProps> = ({
         >
           <div>
             <Typography variant="h5" component="h2" gutterBottom>
-              Direct Pushes to main
+              All Commits
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Commits pushed directly to the default branch in this
-              period
+              All commits on the default branch in this period
             </Typography>
           </div>
         </Box>
@@ -138,7 +137,7 @@ export const DirectPushesSection: React.FC<DirectPushesSectionProps> = ({
           </Table>
         ) : (
           <Typography variant="body2" color="text.secondary">
-            No direct pushes detected in this period
+            No commits found in this period
           </Typography>
         )}
       </CardContent>

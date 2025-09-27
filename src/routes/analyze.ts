@@ -138,16 +138,12 @@ export const analyzeRoutes: FastifyPluginAsync = async (fastify) => {
           })),
           direct_pushes: commits.map((c) => ({
             sha: c.sha,
-            committer:
-              c.committer?.login || c.committer || c.author || 'unknown',
-            message: c.commit?.message || c.message || 'No message',
-            date:
-              c.commit?.committer?.date ||
-              c.commit?.author?.date ||
-              new Date().toISOString(),
-            ci_status: 'unknown',
-            additions: 0,
-            deletions: 0,
+            committer: c.committer || 'unknown',
+            message: c.message || 'No message',
+            date: c.date || new Date().toISOString(),
+            ci_status: c.ci_status || 'unknown',
+            additions: c.additions || 0,
+            deletions: c.deletions || 0,
           })),
           issues: issues,
         };
