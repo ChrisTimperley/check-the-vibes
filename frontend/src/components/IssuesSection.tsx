@@ -15,12 +15,11 @@ import {
   TableSortLabel,
 } from '@mui/material';
 import { Settings } from '@mui/icons-material';
-import { Issue, ProjectItem } from '../types';
+import { Issue } from '../types';
 import { formatDate } from '../utils/dateUtils';
 
 interface IssuesSectionProps {
   issues: Issue[];
-  projectItems: ProjectItem[];
   owner: string;
   repo: string;
 }

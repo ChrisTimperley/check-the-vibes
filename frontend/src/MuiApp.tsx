@@ -116,7 +116,6 @@ function App() {
 
             <IssuesSection
               issues={data.issues}
-              projectItems={data.project.items}
               owner={owner}
               repo={repo}
             />

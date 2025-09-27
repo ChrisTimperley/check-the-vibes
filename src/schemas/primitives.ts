@@ -18,12 +18,6 @@ export const labelSchema = {
   maxLength: 100,
 } as const;
 
-export const sizeBucketSchema = {
-  $id: 'SizeBucket',
-  type: 'string',
-  enum: ['XS', 'S', 'M', 'L', 'XL'],
-} as const;
-
 export const prStatusSchema = {
   $id: 'PRStatus',
   type: 'string',

@@ -11,12 +11,9 @@ import {
   contributorSchema,
   pullRequestSchema,
   issueSchema,
-  projectItemSchema,
-  scoresSchema,
   loginSchema,
   urlSchema,
   labelSchema,
-  sizeBucketSchema,
   prStatusSchema,
   ciStatusSchema,
   commitSchema,
@@ -62,15 +59,12 @@ await server.register(swaggerPlugin);
 server.addSchema(loginSchema);
 server.addSchema(urlSchema);
 server.addSchema(labelSchema);
-server.addSchema(sizeBucketSchema);
 server.addSchema(prStatusSchema);
 server.addSchema(ciStatusSchema);
 server.addSchema(contributorSchema);
 server.addSchema(pullRequestSchema);
 server.addSchema(issueSchema);
-server.addSchema(projectItemSchema);
 server.addSchema(commitSchema);
-server.addSchema(scoresSchema);
 server.addSchema(analyzeResponseSchema);
 server.addSchema(errorSchema);
 server.addSchema(queryAnalyzeSchema);
