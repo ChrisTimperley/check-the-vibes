@@ -1,14 +1,14 @@
 # check-the-vibes
 
-A simple GitHub repo scanner that assesses for SWE best practices and good teamwork. This tool scans GitHub repositories and generates detailed YAML reports analyzing pull request patterns, code review practices, and CI/CD health.
+A web application that analyzes GitHub repositories to assess software engineering best practices and teamwork. This tool provides a React-based dashboard with real-time GitHub API integration to analyze pull request patterns, code review practices, and team collaboration metrics.
 
 ## Features
 
-- 📊 **PR Analysis**: Analyze pull requests for lines changed, files modified, commit count, and review activity
-- 🔗 **Issue Linking Detection**: Track whether PRs are linked to issues via closing keywords
-- 🔍 **Date Range Filtering**: Scan PRs within specific date ranges
-- 📈 **CI/CD Monitoring**: Track continuous integration success rates
-- 📝 **YAML Reports**: Generate comprehensive reports in YAML format
+- 📊 **PR Analysis**: Real-time analysis of pull requests including lines changed, files modified, and review activity
+- 🔗 **Issue Tracking**: Interactive tables showing GitHub issues with sorting and filtering capabilities
+- 📈 **Team Metrics**: Track contributor activity, review participation, and collaboration patterns
+- 🌐 **Web Dashboard**: Modern React UI with Material-UI components and responsive design
+- ⚡ **Real-time Data**: Live GitHub API integration for up-to-date repository insights
 - 🐳 **DevContainer Ready**: Full development environment setup with VS Code
 
 ## Documentation
@@ -153,21 +153,6 @@ summary:
   pullRequestsWithReviews: 35
   pullRequestsWithComments: 40
   ciSuccessRate: 85.5
-```
-
-## CLI Options
-
-```
-check-the-vibes scan [options]
-
-Options:
-  -o, --owner <owner>     Repository owner (username or organization)
-  -r, --repo <repo>       Repository name
-  -s, --since <date>      Start date (YYYY-MM-DD format)
-  -u, --until <date>      End date (YYYY-MM-DD format, defaults to now)
-  -t, --token <token>     GitHub personal access token
-  --output <file>         Output file path (defaults to reports/{owner}-{repo}-{date}.yaml)
-  -h, --help              Show help
 ```
 
 ## License

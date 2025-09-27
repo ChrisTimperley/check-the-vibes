@@ -22,37 +22,3 @@ export interface PullRequestAnalysis {
   linkedIssue: number | null;
   url: string;
 }
-
-export interface RepositoryReport {
-  repository: {
-    owner: string;
-    name: string;
-    url: string;
-  };
-  analysis: {
-    dateRange: {
-      from: string;
-      to?: string;
-    };
-    totalPullRequests: number;
-    analyzedAt: string;
-  };
-  pullRequests: PullRequestAnalysis[];
-  summary: {
-    averageLinesChanged: number;
-    averageFilesChanged: number;
-    averageCommits: number;
-    pullRequestsWithReviews: number;
-    pullRequestsWithComments: number;
-    ciSuccessRate?: number;
-  };
-}
-
-export interface ScanConfig {
-  owner: string;
-  repo: string;
-  token?: string;
-  since: string;
-  until?: string;
-  outputFile?: string;
-}
