@@ -170,6 +170,7 @@ export class GitHubService {
     const pr = result.repository.pullRequest;
     const totalAdditions = pr.additions || 0;
     const totalDeletions = pr.deletions || 0;
+    const linkedIssue = pr.closingIssuesReferences?.nodes?.[0]?.number || null;
 
     // Determine CI status from check runs returned for the head commit (if any)
     let ciStatus: 'success' | 'failure' | 'pending' | 'unknown' = 'unknown';
@@ -212,47 +213,8 @@ export class GitHubService {
         ciStatus = 'unknown';
       }
     } catch (error) {
-      console.warn(
-        `Failed to determine CI status via graphql for PR ${prNumber}:`,
-        error
-      );
+      console.warn(`Failed to determine CI status for PR ${prNumber}:`, error);
       ciStatus = 'unknown';
-    }
-
-    // If GraphQL didn't surface any check runs, fall back to the REST-based helper
-    if (ciStatus === 'unknown') {
-      try {
-        const restRuns = await this.getCheckRuns(owner, repo, prNumber);
-        if (restRuns && restRuns.length > 0) {
-          const hasFailure = restRuns.some(
-            (run: any) =>
-              run.conclusion === 'failure' || run.conclusion === 'cancelled'
-          );
-          const hasSuccess = restRuns.some(
-            (run: any) => run.conclusion === 'success'
-          );
-          const hasPending = restRuns.some(
-            (run: any) =>
-              run.status === 'in_progress' || run.status === 'queued'
-          );
-
-          if (hasPending) ciStatus = 'pending';
-          else if (hasFailure) ciStatus = 'failure';
-          else if (hasSuccess) ciStatus = 'success';
-        }
-      } catch {
-        // ignore fallback errors
-      }
-    }
-
-    // Linked issue: prefer graphql result but fall back to REST/GraphQL helper if missing
-    let linkedIssue = pr.closingIssuesReferences?.nodes?.[0]?.number || null;
-    if (!linkedIssue) {
-      try {
-        linkedIssue = await this.getLinkedIssues(owner, repo, prNumber);
-      } catch {
-        linkedIssue = null;
-      }
     }
 
     return {
@@ -264,7 +226,7 @@ export class GitHubService {
       closedAt: pr.closedAt || undefined,
       state: pr.mergedAt
         ? 'merged'
-        : pr.state.toLowerCase() === 'closed' || pr.state === 'closed'
+        : pr.state.toLowerCase() === 'closed'
           ? 'closed'
           : 'open',
       linesChanged: {
@@ -289,78 +251,6 @@ export class GitHubService {
       linkedIssue,
       url: pr.url || pr.html_url,
     };
-  }
-
-  private async getCheckRuns(
-    owner: string,
-    repo: string,
-    prNumber: number
-  ): Promise<any[]> {
-    try {
-      const pr = await this.octokit.pulls.get({
-        owner,
-        repo,
-        pull_number: prNumber,
-      });
-
-      const checkRuns = await this.octokit.checks.listForRef({
-        owner,
-        repo,
-        ref: pr.data.head.sha,
-      });
-
-      return checkRuns.data.check_runs || [];
-    } catch (error) {
-      const enhancedError = new Error(
-        `Failed to get check runs for PR ${prNumber}`,
-        {
-          cause: error,
-        }
-      );
-      console.warn(enhancedError.message, { cause: enhancedError.cause });
-      return [];
-    }
-  }
-
-  private async getLinkedIssues(
-    owner: string,
-    repo: string,
-    prNumber: number
-  ): Promise<number | null> {
-    try {
-      const query = `
-        query($owner: String!, $repo: String!, $number: Int!) {
-          repository(owner: $owner, name: $repo) {
-            pullRequest(number: $number) {
-              closingIssuesReferences(first: 1) {
-                nodes {
-                  number
-                }
-              }
-            }
-          }
-        }
-      `;
-
-      const result: any = await this.octokit.graphql(query, {
-        owner,
-        repo,
-        number: prNumber,
-      });
-
-      const closingIssues =
-        result.repository.pullRequest.closingIssuesReferences.nodes;
-      return closingIssues.length > 0 ? closingIssues[0].number : null;
-    } catch (error) {
-      const enhancedError = new Error(
-        `Failed to get linked issues for PR ${prNumber}`,
-        {
-          cause: error,
-        }
-      );
-      console.warn(enhancedError.message, { cause: enhancedError.cause });
-      return null;
-    }
   }
 
   async validateRepository(owner: string, repo: string): Promise<boolean> {
