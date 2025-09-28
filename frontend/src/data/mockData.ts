@@ -18,31 +18,26 @@ export const mockAnalysisData: AnalysisReport = {
       login: 'alice',
       commits: 14,
       prs: 3,
-      direct_pushes_default: 0,
     },
     {
       login: 'bob',
       commits: 8,
       prs: 4,
-      direct_pushes_default: 1,
     },
     {
       login: 'carol',
       commits: 12,
       prs: 2,
-      direct_pushes_default: 0,
     },
     {
       login: 'dave',
       commits: 6,
       prs: 1,
-      direct_pushes_default: 0,
     },
     {
       login: 'eve',
       commits: 10,
       prs: 2,
-      direct_pushes_default: 0,
     },
   ],
   pull_requests: [
@@ -158,7 +153,7 @@ export const mockAnalysisData: AnalysisReport = {
       url: 'https://github.com/cmu-sei/example-project/issues/459',
     },
   ],
-  direct_pushes: [
+  commits: [
     {
       sha: 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t',
       committer: 'bob',

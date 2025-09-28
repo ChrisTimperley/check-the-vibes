@@ -21,7 +21,6 @@ export interface Contributor {
   login: string;
   commits: number;
   prs: number;
-  direct_pushes_default: number;
   avatar_url?: string;
 }
 

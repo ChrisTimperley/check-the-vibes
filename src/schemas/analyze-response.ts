@@ -76,9 +76,8 @@ export const contributorSchema = {
     avatar_url: { type: 'string', format: 'uri' },
     commits: { type: 'integer', minimum: 0 },
     prs: { type: 'integer', minimum: 0 },
-    direct_pushes_default: { type: 'integer', minimum: 0 },
   },
-  required: ['login', 'commits', 'prs', 'direct_pushes_default'],
+  required: ['login', 'commits', 'prs'],
 } as const;
 
 export const pullRequestSchema = {

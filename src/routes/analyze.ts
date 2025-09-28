@@ -58,7 +58,6 @@ export const analyzeRoutes: FastifyPluginAsync = async (fastify) => {
             login: string;
             commits: number;
             prs: number;
-            direct_pushes_default: number;
           }
         >();
 
@@ -70,12 +69,9 @@ export const analyzeRoutes: FastifyPluginAsync = async (fastify) => {
               login,
               commits: 0,
               prs: 0,
-              direct_pushes_default: 0,
             });
           }
           contribMap.get(login)!.commits += 1;
-          // For now treat all commits returned as direct pushes
-          contribMap.get(login)!.direct_pushes_default += 1;
         }
 
         // Count PRs from analyzed pullRequests
@@ -86,7 +82,6 @@ export const analyzeRoutes: FastifyPluginAsync = async (fastify) => {
               login,
               commits: 0,
               prs: 0,
-              direct_pushes_default: 0,
             });
           }
           const entry = contribMap.get(login)!;
@@ -98,7 +93,6 @@ export const analyzeRoutes: FastifyPluginAsync = async (fastify) => {
           login: c.login,
           commits: c.commits,
           prs: c.prs,
-          direct_pushes_default: c.direct_pushes_default,
           avatar_url: `https://avatars.githubusercontent.com/${c.login}`,
         }));
 

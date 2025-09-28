@@ -129,14 +129,7 @@ export const ContributorsSection: React.FC<ContributorsSectionProps> = ({
                         size="small"
                         color="primary"
                       />
-                      {contributor.direct_pushes_default > 0 && (
-                        <Chip
-                          label={`Direct pushes: ${contributor.direct_pushes_default}`}
-                          size="small"
-                          color="error"
-                          variant="outlined"
-                        />
-                      )}
+                      {/* direct_pushes_default removed; only show total commits */}
                     </Box>
                   </Box>
 
