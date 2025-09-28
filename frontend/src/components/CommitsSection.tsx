@@ -15,13 +15,13 @@ import {
 import { Commit } from '../types';
 import { formatDateTime } from '../utils/dateUtils';
 
-interface DirectPushesSectionProps {
+interface CommitsSectionProps {
   directPushes: Commit[];
   owner: string;
   repo: string;
 }
 
-export const DirectPushesSection: React.FC<DirectPushesSectionProps> = ({
+export const CommitsSection: React.FC<CommitsSectionProps> = ({
   directPushes,
   owner,
   repo,

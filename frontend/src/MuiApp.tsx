@@ -11,7 +11,7 @@ import {
   PullRequestsSection,
   ContributorsSection,
   IssuesSection,
-  DirectPushesSection,
+  CommitsSection,
 } from './components';
 
 function App() {
@@ -142,7 +142,7 @@ function App() {
               repo={repo}
             />
 
-            <DirectPushesSection
+            <CommitsSection
               directPushes={data.commits || []}
               owner={owner}
               repo={repo}
