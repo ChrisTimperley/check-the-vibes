@@ -426,102 +426,101 @@ export class GitHubService {
     since: Date,
     until?: Date
   ): Promise<any[]> {
+    // Use GraphQL search to fetch issues and comment counts in bulk.
     const issues: any[] = [];
-    let page = 1;
-    const perPage = 100;
+    const perPage = 50;
+    let after: string | null = null;
+    const sinceIso = since.toISOString().split('T')[0];
+    const untilIso = until ? until.toISOString().split('T')[0] : null;
 
-    console.log(`🔍 Fetching issues from ${owner}/${repo}...`);
+    console.log(`🔍 Fetching issues (graphql) from ${owner}/${repo}...`);
 
-    let hasMore = true;
-    while (hasMore) {
-      console.log(
-        `📄 Fetching page ${page} (up to ${perPage} issues per page)...`
-      );
+    const query = `
+      query($queryString: String!, $first: Int!, $after: String) {
+        search(query: $queryString, type: ISSUE, first: $first, after: $after) {
+          issueCount
+          pageInfo { hasNextPage endCursor }
+          edges {
+            node {
+              ... on Issue {
+                number
+                title
+                author { login }
+                createdAt
+                closedAt
+                state
+                comments { totalCount }
+                assignees(first: 50) { nodes { login } }
+                labels(first: 50) { nodes { name } }
+                url
+              }
+            }
+          }
+        }
+      }
+    `;
 
-      const response = await this.octokit.issues.listForRepo({
-        owner,
-        repo,
-        state: 'all',
-        sort: 'created',
-        direction: 'desc',
-        per_page: perPage,
-        page,
+    // Build search qualifier string. Use created range and is:issue to exclude PRs.
+    let searchQual = `repo:${owner}/${repo} is:issue created:>=${sinceIso}`;
+    if (untilIso) searchQual += ` created:<=${untilIso}`;
+    // Sort by created desc to help early termination
+    searchQual += ' sort:created-desc';
+
+    let hasNext = true;
+    do {
+      const result: any = await this.octokit.graphql(query, {
+        queryString: searchQual,
+        first: perPage,
+        after,
       });
 
-      if (response.data.length === 0) {
-        console.log(`📄 No more issues found (page ${page})`);
-        break;
-      }
+      const res = result.search;
+      const edges = res.edges || [];
+      for (const edge of edges) {
+        const node = edge.node;
+        // Map GraphQL Issue node to existing issue shape
+        const created_at = node.createdAt;
+        const closed_at = node.closedAt || null;
 
-      for (const issue of response.data) {
-        // Skip pull requests (GitHub API returns PRs as issues)
-        if (issue.pull_request) {
-          continue;
+        // ignore if created before since (defensive)
+        if (new Date(created_at) < since) {
+          // we've reached older issues; stop processing
+          return issues;
         }
 
-        const createdAt = new Date(issue.created_at);
-        const upperLimit = until || new Date();
-
-        // Check if issue falls within our date range
-        if (createdAt < since) {
-          console.log(
-            `📅 Issue #${issue.number} created before range (${createdAt.toISOString()})`
-          );
-          hasMore = false;
-          break;
-        }
-
-        if (createdAt > upperLimit) {
-          continue;
-        }
-
-        console.log(`📋 Processing issue #${issue.number}: ${issue.title}`);
-
-        // Fetch additional issue details
-        const [comments] = await Promise.all([
-          this.octokit.issues.listComments({
-            owner,
-            repo,
-            issue_number: issue.number,
-          }),
-        ]);
+        // If until provided and created after until, skip
+        if (until && new Date(created_at) > until) continue;
 
         issues.push({
-          number: issue.number,
-          title: issue.title,
-          author: issue.user?.login || 'unknown',
-          created_at: issue.created_at,
-          closed_at: issue.closed_at,
-          is_closed: issue.state === 'closed',
-          time_to_first_response_minutes: null, // Could be calculated if needed
-          time_to_close_hours: issue.closed_at
+          number: node.number,
+          title: node.title,
+          author: node.author?.login || 'unknown',
+          created_at,
+          closed_at,
+          is_closed: String(node.state || '').toLowerCase() === 'closed',
+          time_to_first_response_minutes: null,
+          time_to_close_hours: closed_at
             ? Math.round(
-                (new Date(issue.closed_at).getTime() -
-                  new Date(issue.created_at).getTime()) /
+                (new Date(closed_at).getTime() -
+                  new Date(created_at).getTime()) /
                   (1000 * 60 * 60)
               )
             : null,
-          assignees: issue.assignees?.map((assignee) => assignee.login) || [],
-          labels:
-            issue.labels
-              ?.map((label) => (typeof label === 'string' ? label : label.name))
-              .filter(Boolean) || [],
-          linked_prs: [], // Could be enhanced to find linked PRs
-          url: issue.html_url,
-          comments: comments.data.length,
+          assignees: (node.assignees?.nodes || []).map((n: any) => n.login),
+          labels: (node.labels?.nodes || [])
+            .map((l: any) => l.name)
+            .filter(Boolean),
+          linked_prs: [],
+          url: node.url,
+          comments: node.comments?.totalCount || 0,
         });
       }
 
-      if (response.data.length < perPage) {
-        console.log(`📄 Reached final page (page ${page})`);
-        hasMore = false;
-        break;
-      }
+      hasNext = Boolean(res.pageInfo?.hasNextPage);
+      after = res.pageInfo?.endCursor || null;
+    } while (hasNext);
 
-      page++;
-    }
-
-    console.log(`🎉 Found ${issues.length} issues in date range`);
+    console.log(`🎉 Found ${issues.length} issues in date range (graphql)`);
     return issues;
   }
 
