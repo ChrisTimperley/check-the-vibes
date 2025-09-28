@@ -86,25 +86,34 @@ export const CommitsSection: React.FC<CommitsSectionProps> = ({
                       : c.message}
                   </TableCell>
                   <TableCell>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        gap: 1,
-                        alignItems: 'center',
-                      }}
-                    >
-                      <Chip
-                        label={`+${c.additions ?? 0}`}
-                        size="small"
-                        color="success"
-                        sx={{ fontWeight: 600 }}
-                      />
-                      <Chip
-                        label={`-${c.deletions ?? 0}`}
-                        size="small"
-                        color="error"
-                        sx={{ fontWeight: 600 }}
-                      />
+                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                      <Typography
+                        component="span"
+                        sx={{ fontFamily: 'monospace', fontWeight: 700 }}
+                      >
+                        {((c.additions ?? 0) + (c.deletions ?? 0)).toString()}
+                      </Typography>
+
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          gap: 1,
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Chip
+                          label={`+${c.additions ?? 0}`}
+                          size="small"
+                          color="success"
+                          sx={{ fontWeight: 600 }}
+                        />
+                        <Chip
+                          label={`-${c.deletions ?? 0}`}
+                          size="small"
+                          color="error"
+                          sx={{ fontWeight: 600 }}
+                        />
+                      </Box>
                     </Box>
                   </TableCell>
                   <TableCell>{formatDateTime(c.date)}</TableCell>

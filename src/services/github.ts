@@ -572,15 +572,105 @@ export class GitHubService {
       );
 
       for (const commit of response.data) {
-        commits.push({
-          sha: commit.sha,
-          committer: commit.committer?.login || 'unknown',
-          message: commit.commit.message,
-          date: commit.commit.author?.date || new Date().toISOString(),
-          additions: 0, // Placeholder, as additions/deletions are not available here
-          deletions: 0, // Placeholder
-          ci_status: 'unknown', // Placeholder
-        });
+        try {
+          // Fetch detailed commit information (stats)
+          const commitDetail = await this.octokit.repos.getCommit({
+            owner,
+            repo,
+            ref: commit.sha,
+          });
+
+          const additions = commitDetail.data.stats?.additions || 0;
+          const deletions = commitDetail.data.stats?.deletions || 0;
+
+          // Determine CI status from check runs or combined status
+          let ciStatus: 'pass' | 'fail' | 'pending' | 'unknown' | 'none' =
+            'unknown';
+          try {
+            const [checkRuns, statusChecks] = await Promise.all([
+              this.octokit.checks
+                .listForRef({ owner, repo, ref: commit.sha })
+                .catch(() => ({ data: { check_runs: [] } })),
+              this.octokit.repos
+                .getCombinedStatusForRef({ owner, repo, ref: commit.sha })
+                .catch(() => ({ data: { state: 'none' } })),
+            ]);
+
+            if (
+              checkRuns.data.check_runs &&
+              checkRuns.data.check_runs.length > 0
+            ) {
+              const hasFailure = checkRuns.data.check_runs.some(
+                (run) =>
+                  run.conclusion === 'failure' || run.conclusion === 'cancelled'
+              );
+              const hasSuccess = checkRuns.data.check_runs.some(
+                (run) => run.conclusion === 'success'
+              );
+              const hasPending = checkRuns.data.check_runs.some(
+                (run) => run.status === 'in_progress' || run.status === 'queued'
+              );
+
+              if (hasFailure) ciStatus = 'fail';
+              else if (hasPending) ciStatus = 'pending';
+              else if (hasSuccess) ciStatus = 'pass';
+            } else if (
+              statusChecks.data.state &&
+              statusChecks.data.state !== 'none'
+            ) {
+              switch (statusChecks.data.state) {
+                case 'success':
+                  ciStatus = 'pass';
+                  break;
+                case 'failure':
+                case 'error':
+                  ciStatus = 'fail';
+                  break;
+                case 'pending':
+                  ciStatus = 'pending';
+                  break;
+                default:
+                  ciStatus = 'unknown';
+              }
+            } else {
+              ciStatus = 'none';
+            }
+          } catch (error) {
+            console.warn(
+              `Failed to fetch CI status for commit ${commit.sha.slice(0, 7)}:`,
+              error
+            );
+            ciStatus = 'unknown';
+          }
+
+          commits.push({
+            sha: commit.sha,
+            committer:
+              commit.committer?.login ||
+              commit.commit.author?.name ||
+              'unknown',
+            message: commit.commit.message,
+            date: commit.commit.author?.date || new Date().toISOString(),
+            additions,
+            deletions,
+            ci_status: ciStatus,
+          });
+        } catch (error) {
+          console.warn(
+            `Failed to fetch commit details for ${commit.sha.slice(0, 7)}:`,
+            error
+          );
+          // Fallback: include minimal info
+          commits.push({
+            sha: commit.sha,
+            committer: commit.committer?.login || 'unknown',
+            message: commit.commit.message,
+            date: commit.commit.author?.date || new Date().toISOString(),
+            additions: 0,
+            deletions: 0,
+            ci_status: 'unknown',
+          });
+        }
       }
 
       if (response.data.length < perPage) {
