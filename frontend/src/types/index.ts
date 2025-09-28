@@ -66,4 +66,5 @@ export interface Commit {
   ci_status?: 'pass' | 'fail' | 'pending' | 'unknown' | 'none';
   additions?: number;
   deletions?: number;
+  is_merge?: boolean;
 }

@@ -177,6 +177,7 @@ export const commitSchema = {
     ci_status: { $ref: 'CIStatus' },
     additions: { type: 'integer', minimum: 0 },
     deletions: { type: 'integer', minimum: 0 },
+    is_merge: { type: 'boolean' },
   },
   required: ['sha', 'committer', 'message', 'date'],
 } as const;

@@ -4,6 +4,7 @@ import Fastify from 'fastify';
 import dotenv from 'dotenv';
 import { healthRoutes } from './routes/health.js';
 import { analyzeRoutes } from './routes/analyze.js';
+import { testRoutes } from './routes/test-mock.js';
 import { swaggerPlugin } from './plugins/swagger.js';
 import {
   errorSchema,
@@ -72,6 +73,7 @@ server.addSchema(queryAnalyzeSchema);
 // Register routes
 await server.register(healthRoutes);
 await server.register(analyzeRoutes);
+await server.register(testRoutes);
 
 // Start server
 const start = async (): Promise<void> => {

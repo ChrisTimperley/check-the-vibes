@@ -22,14 +22,14 @@ export const analyzeRoutes: FastifyPluginAsync = async (fastify) => {
       };
 
       if (!repo || !from) {
-        return reply.status(400).send({ error: 'repo and from are required' });
+        return reply.status(400).send({ code: 400, message: 'repo and from are required' });
       }
 
       const [owner, repoName] = repo.split('/');
       if (!owner || !repoName) {
         return reply
           .status(400)
-          .send({ error: 'repo must be in format owner/repo' });
+          .send({ code: 400, message: 'repo must be in format owner/repo' });
       }
 
       try {
@@ -144,6 +144,7 @@ export const analyzeRoutes: FastifyPluginAsync = async (fastify) => {
             ci_status: c.ci_status || 'unknown',
             additions: c.additions || 0,
             deletions: c.deletions || 0,
+            is_merge: c.is_merge || false,
           })),
           issues: issues,
         };
@@ -153,7 +154,7 @@ export const analyzeRoutes: FastifyPluginAsync = async (fastify) => {
         fastify.log.error(error);
         return reply
           .status(500)
-          .send({ error: 'Failed to analyze repository' });
+          .send({ code: 500, message: 'Failed to analyze repository' });
       }
     }
   );

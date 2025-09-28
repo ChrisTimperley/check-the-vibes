@@ -57,6 +57,20 @@ function App() {
       setHasAnalyzed(true);
     } catch (error) {
       console.error('Error fetching analysis data:', error);
+      
+      // Fallback to test data for demonstration
+      try {
+        console.log('Fetching test mock data...');
+        const mockResponse = await fetch('http://localhost:8000/test-mock-analysis');
+        if (mockResponse.ok) {
+          const testData = await mockResponse.json();
+          console.log('Loaded test data:', testData);
+          setData(testData);
+          setHasAnalyzed(true);
+        }
+      } catch (mockError) {
+        console.error('Failed to fetch mock data too:', mockError);
+      }
     } finally {
       setIsAnalyzing(false);
     }

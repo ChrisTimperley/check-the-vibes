@@ -395,6 +395,9 @@ export class GitHubService {
             ciStatus = 'unknown';
           }
 
+          // Check if this is a merge commit (has multiple parents)
+          const isMerge = !!(commit.parents && commit.parents.length > 1);
+
           commits.push({
             sha: commit.sha,
             committer:
@@ -404,6 +407,7 @@ export class GitHubService {
             additions,
             deletions,
             ci_status: ciStatus,
+            is_merge: isMerge,
           });
         } catch (error) {
           console.warn(

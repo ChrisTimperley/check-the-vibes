@@ -55,6 +55,7 @@ export const DirectPushesSection: React.FC<DirectPushesSectionProps> = ({
                   Committer
                 </TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Message</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>Type</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Lines</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Date</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>CI</TableCell>
@@ -86,6 +87,15 @@ export const DirectPushesSection: React.FC<DirectPushesSectionProps> = ({
                     {c.message.length > 60
                       ? `${c.message.slice(0, 60)}...`
                       : c.message}
+                  </TableCell>
+                  <TableCell>
+                    <Chip
+                      label={c.is_merge ? 'Merge' : 'Regular'}
+                      size="small"
+                      color={c.is_merge ? 'secondary' : 'default'}
+                      variant={c.is_merge ? 'filled' : 'outlined'}
+                      sx={{ fontWeight: 600 }}
+                    />
                   </TableCell>
                   <TableCell>
                     <Box
