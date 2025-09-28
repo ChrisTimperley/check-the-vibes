@@ -217,6 +217,12 @@ export class GitHubService {
       ciStatus = 'unknown';
     }
 
+    const state: 'merged' | 'closed' | 'open' = (() => {
+      if (pr.mergedAt) return 'merged';
+      if (String(pr.state || '').toLowerCase() === 'closed') return 'closed';
+      return 'open';
+    })();
+
     return {
       number: pr.number,
       title: pr.title,
@@ -224,11 +230,7 @@ export class GitHubService {
       createdAt: pr.createdAt,
       mergedAt: pr.mergedAt || undefined,
       closedAt: pr.closedAt || undefined,
-      state: pr.mergedAt
-        ? 'merged'
-        : pr.state.toLowerCase() === 'closed'
-          ? 'closed'
-          : 'open',
+      state,
       linesChanged: {
         additions: totalAdditions,
         deletions: totalDeletions,
