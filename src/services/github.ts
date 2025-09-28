@@ -534,145 +534,138 @@ export class GitHubService {
     until?: Date
   ): Promise<Commit[]> {
     const commits: Commit[] = [];
-    let page = 1;
     const perPage = 100;
+    let after: string | null = null;
 
     console.log(
-      `🔍 Fetching commits for default branch of ${owner}/${repo}...`
+      `🔍 Fetching commits for default branch of ${owner}/${repo} (graphql)...`
     );
 
-    let hasMore = true;
-    while (hasMore) {
-      const response = await this.octokit.repos.listCommits({
-        owner,
-        repo,
-        since: since.toISOString(),
-        until: until?.toISOString(),
-        per_page: perPage,
-        page,
-      });
-
-      if (response.data.length === 0) {
-        console.log('📄 No more commits found');
-        hasMore = false;
-        break;
-      }
-
-      console.log(
-        `📋 Processing ${response.data.length} commits from page ${page}...`
-      );
-
-      for (const commit of response.data) {
-        try {
-          // Fetch detailed commit information (stats)
-          const commitDetail = await this.octokit.repos.getCommit({
-            owner,
-            repo,
-            ref: commit.sha,
-          });
-
-          const additions = commitDetail.data.stats?.additions || 0;
-          const deletions = commitDetail.data.stats?.deletions || 0;
-
-          // Determine CI status from check runs or combined status
-          let ciStatus: 'pass' | 'fail' | 'pending' | 'unknown' | 'none' =
-            'unknown';
-          try {
-            const [checkRuns, statusChecks] = await Promise.all([
-              this.octokit.checks
-                .listForRef({ owner, repo, ref: commit.sha })
-                .catch(() => ({ data: { check_runs: [] } })),
-              this.octokit.repos
-                .getCombinedStatusForRef({ owner, repo, ref: commit.sha })
-                .catch(() => ({ data: { state: 'none' } })),
-            ]);
-
-            if (
-              checkRuns.data.check_runs &&
-              checkRuns.data.check_runs.length > 0
-            ) {
-              const hasFailure = checkRuns.data.check_runs.some(
-                (run) =>
-                  run.conclusion === 'failure' || run.conclusion === 'cancelled'
-              );
-              const hasSuccess = checkRuns.data.check_runs.some(
-                (run) => run.conclusion === 'success'
-              );
-              const hasPending = checkRuns.data.check_runs.some(
-                (run) => run.status === 'in_progress' || run.status === 'queued'
-              );
-
-              if (hasFailure) ciStatus = 'fail';
-              else if (hasPending) ciStatus = 'pending';
-              else if (hasSuccess) ciStatus = 'pass';
-            } else if (
-              statusChecks.data.state &&
-              statusChecks.data.state !== 'none'
-            ) {
-              switch (statusChecks.data.state) {
-                case 'success':
-                  ciStatus = 'pass';
-                  break;
-                case 'failure':
-                case 'error':
-                  ciStatus = 'fail';
-                  break;
-                case 'pending':
-                  ciStatus = 'pending';
-                  break;
-                default:
-                  ciStatus = 'unknown';
+    const query = `
+      query($owner: String!, $repo: String!, $perPage: Int!, $after: String, $since: GitTimestamp, $until: GitTimestamp) {
+        repository(owner: $owner, name: $repo) {
+          defaultBranchRef {
+            name
+            target {
+              ... on Commit {
+                history(first: $perPage, after: $after, since: $since, until: $until) {
+                  pageInfo { hasNextPage endCursor }
+                  nodes {
+                    oid
+                    message
+                    committedDate
+                    additions
+                    deletions
+                    author { user { login } name }
+                    checkSuites(first: 50) {
+                      nodes {
+                        checkRuns(first: 50) {
+                          nodes {
+                            name
+                            conclusion
+                            status
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
               }
-            } else {
-              ciStatus = 'none';
             }
-          } catch (error) {
-            console.warn(
-              `Failed to fetch CI status for commit ${commit.sha.slice(0, 7)}:`,
-              error
-            );
-            ciStatus = 'unknown';
           }
-
-          commits.push({
-            sha: commit.sha,
-            committer:
-              commit.committer?.login ||
-              commit.commit.author?.name ||
-              'unknown',
-            message: commit.commit.message,
-            date: commit.commit.author?.date || new Date().toISOString(),
-            additions,
-            deletions,
-            ci_status: ciStatus,
-          });
-        } catch (error) {
-          console.warn(
-            `Failed to fetch commit details for ${commit.sha.slice(0, 7)}:`,
-            error
-          );
-          // Fallback: include minimal info
-          commits.push({
-            sha: commit.sha,
-            committer: commit.committer?.login || 'unknown',
-            message: commit.commit.message,
-            date: commit.commit.author?.date || new Date().toISOString(),
-            additions: 0,
-            deletions: 0,
-            ci_status: 'unknown',
-          });
         }
       }
+    `;
 
-      if (response.data.length < perPage) {
-        console.log(`📄 Reached final page (page ${page})`);
-        hasMore = false;
-        break;
+    const sinceIso = since.toISOString();
+    const untilIso = until ? until.toISOString() : undefined;
+
+    let hasNext = true;
+    do {
+      const result: any = await this.octokit.graphql(query, {
+        owner,
+        repo,
+        perPage,
+        after,
+        since: sinceIso,
+        until: untilIso,
+      });
+
+      const history = result.repository?.defaultBranchRef?.target?.history;
+      if (!history) break;
+
+      const nodes = history.nodes || [];
+      console.log(`📋 Processing ${nodes.length} commits from history page...`);
+
+      for (const node of nodes) {
+        const sha = node.oid;
+        const additions = node.additions || 0;
+        const deletions = node.deletions || 0;
+        const message = node.message || '';
+        const date = node.committedDate || new Date().toISOString();
+        const committer =
+          node.author?.user?.login || node.author?.name || 'unknown';
+
+        // Determine CI status from check runs in the commit's check suites
+        let ciStatus: 'pass' | 'fail' | 'pending' | 'unknown' | 'none' =
+          'unknown';
+        try {
+          const checkRunNodes: any[] = [];
+          const suites = node.checkSuites?.nodes || [];
+          for (const suite of suites) {
+            const runs = suite.checkRuns?.nodes || [];
+            for (const r of runs) checkRunNodes.push(r);
+          }
+
+          if (checkRunNodes.length > 0) {
+            const hasFailure = checkRunNodes.some(
+              (run) =>
+                (run.conclusion || '').toString().toLowerCase() === 'failure' ||
+                (run.conclusion || '').toString().toLowerCase() === 'cancelled'
+            );
+            const hasSuccess = checkRunNodes.some(
+              (run) =>
+                (run.conclusion || '').toString().toLowerCase() === 'success'
+            );
+            const hasPending = checkRunNodes.some((run) => {
+              const s = (run.status || '').toString().toLowerCase();
+              return (
+                s === 'in_progress' ||
+                s === 'queued' ||
+                s === 'waiting' ||
+                (run.conclusion || '').toString().toLowerCase() === 'neutral'
+              );
+            });
+
+            if (hasPending) ciStatus = 'pending';
+            else if (hasFailure) ciStatus = 'fail';
+            else if (hasSuccess) ciStatus = 'pass';
+            else ciStatus = 'unknown';
+          } else {
+            ciStatus = 'none';
+          }
+        } catch (error) {
+          console.warn(
+            `Failed to compute CI status for commit ${sha.slice(0, 7)}:`,
+            error
+          );
+          ciStatus = 'unknown';
+        }
+
+        commits.push({
+          sha,
+          committer,
+          message,
+          date,
+          additions,
+          deletions,
+          ci_status: ciStatus,
+        });
       }
 
-      console.log(`📄 Completed page ${page}, moving to next page...`);
-      page++;
-    }
+      hasNext = Boolean(history.pageInfo?.hasNextPage);
+      after = history.pageInfo?.endCursor || null;
+    } while (hasNext);
 
     console.log(
       `🎉 Completed fetching! Found ${commits.length} commits in date range`
