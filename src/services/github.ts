@@ -1,6 +1,6 @@
 import { Octokit } from '@octokit/rest';
 import type { PullRequestAnalysis } from '../types/index.js';
-import { Commit } from '../types/index.js';
+import type { Commit } from '../types/index.js';
 
 export class GitHubService {
   private octokit: Octokit;
@@ -106,65 +106,165 @@ export class GitHubService {
     repo: string,
     prNumber: number
   ): Promise<PullRequestAnalysis> {
-    console.log(`  📊 Fetching detailed data for PR #${prNumber}...`);
+    console.log(`  📊 Fetching detailed data for PR #${prNumber} (graphql)...`);
 
-    const [prData, files, commits, reviews, comments, checkRuns, linkedIssue] =
-      await Promise.all([
-        this.octokit.pulls.get({ owner, repo, pull_number: prNumber }),
-        this.octokit.pulls.listFiles({ owner, repo, pull_number: prNumber }),
-        this.octokit.pulls.listCommits({ owner, repo, pull_number: prNumber }),
-        this.octokit.pulls.listReviews({ owner, repo, pull_number: prNumber }),
-        this.octokit.issues.listComments({
-          owner,
-          repo,
-          issue_number: prNumber,
-        }),
-        this.getCheckRuns(owner, repo, prNumber),
-        this.getLinkedIssues(owner, repo, prNumber),
-      ]);
+    // Use a single GraphQL query to fetch aggregated PR data and the head commit's check runs.
+    // This dramatically reduces REST API calls compared to listing files, commits, reviews, and comments separately.
+    const query = `
+      query($owner: String!, $repo: String!, $number: Int!) {
+        repository(owner: $owner, name: $repo) {
+          pullRequest(number: $number) {
+            number
+            title
+            author { login }
+            createdAt
+            mergedAt
+            closedAt
+            state
+            additions
+            deletions
+            changedFiles
+            commits { totalCount }
+            lastCommit: commits(last: 1) {
+              nodes {
+                commit {
+                  oid
+                  checkSuites(first: 50) {
+                    nodes {
+                      checkRuns(first: 50) {
+                        nodes {
+                          name
+                          conclusion
+                          status
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            reviews(first: 100) {
+              totalCount
+              nodes {
+                author { login }
+              }
+            }
+            comments: comments(first: 1) { totalCount }
+            closingIssuesReferences(first: 1) {
+              nodes { number }
+            }
+            url: url
+          }
+        }
+      }
+    `;
 
-    console.log(`  ✅ Completed analysis for PR #${prNumber}`);
+    const result: any = await this.octokit.graphql(query, {
+      owner,
+      repo,
+      number: prNumber,
+    });
 
-    const pr = prData.data;
-    const totalAdditions = files.data.reduce(
-      (sum, file) => sum + (file.additions || 0),
-      0
-    );
-    const totalDeletions = files.data.reduce(
-      (sum, file) => sum + (file.deletions || 0),
-      0
-    );
+    console.log(`  ✅ Completed analysis for PR #${prNumber} (graphql)`);
 
-    // Determine CI status
+    const pr = result.repository.pullRequest;
+    const totalAdditions = pr.additions || 0;
+    const totalDeletions = pr.deletions || 0;
+
+    // Determine CI status from check runs returned for the head commit (if any)
     let ciStatus: 'success' | 'failure' | 'pending' | 'unknown' = 'unknown';
-    if (checkRuns.length > 0) {
-      const hasFailure = checkRuns.some(
-        (run) => run.conclusion === 'failure' || run.conclusion === 'cancelled'
-      );
-      const hasSuccess = checkRuns.some((run) => run.conclusion === 'success');
-      const hasPending = checkRuns.some(
-        (run) => run.status === 'in_progress' || run.status === 'queued'
-      );
+    try {
+      const checkRunNodes: any[] = [];
+      const commitNodes =
+        pr.lastCommit && pr.lastCommit.nodes ? pr.lastCommit.nodes : [];
+      if (commitNodes.length > 0 && commitNodes[0].commit) {
+        const suites = commitNodes[0].commit.checkSuites?.nodes || [];
+        for (const suite of suites) {
+          const runs = suite.checkRuns?.nodes || [];
+          for (const r of runs) checkRunNodes.push(r);
+        }
+      }
 
-      if (hasPending) {
-        ciStatus = 'pending';
-      } else if (hasFailure) {
-        ciStatus = 'failure';
-      } else if (hasSuccess) {
-        ciStatus = 'success';
+      if (checkRunNodes.length > 0) {
+        const hasFailure = checkRunNodes.some(
+          (run) =>
+            (run.conclusion || '').toString().toLowerCase() === 'failure' ||
+            (run.conclusion || '').toString().toLowerCase() === 'cancelled'
+        );
+        const hasSuccess = checkRunNodes.some(
+          (run) => (run.conclusion || '').toString().toLowerCase() === 'success'
+        );
+        const hasPending = checkRunNodes.some((run) => {
+          const s = (run.status || '').toString().toLowerCase();
+          return (
+            s === 'in_progress' ||
+            s === 'queued' ||
+            (run.conclusion || '').toString().toLowerCase() === 'neutral' ||
+            s === 'waiting'
+          );
+        });
+
+        if (hasPending) ciStatus = 'pending';
+        else if (hasFailure) ciStatus = 'failure';
+        else if (hasSuccess) ciStatus = 'success';
+        else ciStatus = 'unknown';
+      } else {
+        ciStatus = 'unknown';
+      }
+    } catch (error) {
+      console.warn(
+        `Failed to determine CI status via graphql for PR ${prNumber}:`,
+        error
+      );
+      ciStatus = 'unknown';
+    }
+
+    // If GraphQL didn't surface any check runs, fall back to the REST-based helper
+    if (ciStatus === 'unknown') {
+      try {
+        const restRuns = await this.getCheckRuns(owner, repo, prNumber);
+        if (restRuns && restRuns.length > 0) {
+          const hasFailure = restRuns.some(
+            (run: any) =>
+              run.conclusion === 'failure' || run.conclusion === 'cancelled'
+          );
+          const hasSuccess = restRuns.some(
+            (run: any) => run.conclusion === 'success'
+          );
+          const hasPending = restRuns.some(
+            (run: any) =>
+              run.status === 'in_progress' || run.status === 'queued'
+          );
+
+          if (hasPending) ciStatus = 'pending';
+          else if (hasFailure) ciStatus = 'failure';
+          else if (hasSuccess) ciStatus = 'success';
+        }
+      } catch {
+        // ignore fallback errors
+      }
+    }
+
+    // Linked issue: prefer graphql result but fall back to REST/GraphQL helper if missing
+    let linkedIssue = pr.closingIssuesReferences?.nodes?.[0]?.number || null;
+    if (!linkedIssue) {
+      try {
+        linkedIssue = await this.getLinkedIssues(owner, repo, prNumber);
+      } catch {
+        linkedIssue = null;
       }
     }
 
     return {
       number: pr.number,
       title: pr.title,
-      author: pr.user?.login || 'unknown',
-      createdAt: pr.created_at,
-      mergedAt: pr.merged_at || undefined,
-      closedAt: pr.closed_at || undefined,
-      state: pr.merged_at
+      author: pr.author?.login || 'unknown',
+      createdAt: pr.createdAt,
+      mergedAt: pr.mergedAt || undefined,
+      closedAt: pr.closedAt || undefined,
+      state: pr.mergedAt
         ? 'merged'
-        : pr.state === 'closed'
+        : pr.state.toLowerCase() === 'closed' || pr.state === 'closed'
           ? 'closed'
           : 'open',
       linesChanged: {
@@ -172,22 +272,22 @@ export class GitHubService {
         deletions: totalDeletions,
         total: totalAdditions + totalDeletions,
       },
-      filesChanged: files.data.length,
-      commits: commits.data.length,
-      reviewCount: reviews.data.length,
-      commentCount: comments.data.length,
-      hasReviews: reviews.data.length > 0,
-      hasComments: comments.data.length > 0,
-      reviewers: [
-        ...new Set(
-          reviews.data
-            .map((review) => review.user?.login)
-            .filter((login): login is string => Boolean(login))
-        ),
-      ],
+      filesChanged: pr.changedFiles || 0,
+      commits: pr.commits?.totalCount || 0,
+      reviewCount: pr.reviews?.totalCount || 0,
+      commentCount: pr.comments?.totalCount || 0,
+      hasReviews: (pr.reviews?.totalCount || 0) > 0,
+      hasComments: (pr.comments?.totalCount || 0) > 0,
+      reviewers: Array.from(
+        new Set(
+          ((pr.reviews?.nodes || []) as any[])
+            .map((r: any) => r.author?.login)
+            .filter(Boolean) as string[]
+        )
+      ),
       ciStatus,
       linkedIssue,
-      url: pr.html_url,
+      url: pr.url || pr.html_url,
     };
   }
 
