@@ -41,7 +41,7 @@ export const DirectPushesSection: React.FC<DirectPushesSectionProps> = ({
               All Commits
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              All commits on the default branch in this period
+              All commits on the default branch
             </Typography>
           </div>
         </Box>
@@ -51,9 +51,7 @@ export const DirectPushesSection: React.FC<DirectPushesSectionProps> = ({
             <TableHead>
               <TableRow>
                 <TableCell sx={{ fontWeight: 700 }}>SHA</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>
-                  Committer
-                </TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>Committer</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Message</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Lines</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Date</TableCell>

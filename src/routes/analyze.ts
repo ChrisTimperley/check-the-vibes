@@ -38,11 +38,18 @@ export const analyzeRoutes: FastifyPluginAsync = async (fastify) => {
         const until = to ? new Date(to) : new Date();
 
         // Fetch PRs, commits, and issues in parallel
-        const [pullRequests, commits, issues] = await Promise.all([
+        const [pullRequests, issues] = await Promise.all([
           github.getPullRequestsSince(owner, repoName, since, until),
-          github.getCommitsSince(owner, repoName, since, until),
           github.getIssuesSince(owner, repoName, since, until),
         ]);
+
+        // Update the commits array to include all commits to the default branch
+        const commits = await github.fetchCommitsForDefaultBranch(
+          owner,
+          repoName,
+          since,
+          until
+        );
 
         // Basic aggregation for contributors
         const contribMap = new Map<
@@ -55,17 +62,9 @@ export const analyzeRoutes: FastifyPluginAsync = async (fastify) => {
           }
         >();
 
-        // Count commits by committer (commits array contains committer/committer.login or committer name)
+        // Count commits by committer (commits array contains simplified Commit objects)
         for (const c of commits) {
-          const committer =
-            (c.committer && c.committer.login) ||
-            c.committer ||
-            c.author ||
-            c.commit?.author?.name;
-          const login =
-            typeof committer === 'string'
-              ? committer
-              : (committer && committer.login) || 'unknown';
+          const login = (c.committer as string) || 'unknown';
           if (!contribMap.has(login)) {
             contribMap.set(login, {
               login,
@@ -136,7 +135,7 @@ export const analyzeRoutes: FastifyPluginAsync = async (fastify) => {
             url: p.url,
             comments: p.commentCount || 0,
           })),
-          direct_pushes: commits.map((c) => ({
+          commits: commits.map((c) => ({
             sha: c.sha,
             committer: c.committer || 'unknown',
             message: c.message || 'No message',

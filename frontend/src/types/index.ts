@@ -13,7 +13,7 @@ export interface AnalysisReport {
   };
   contributors: Contributor[];
   pull_requests: PullRequest[];
-  direct_pushes?: Commit[];
+  commits?: Commit[];
   issues: Issue[];
 }
 

@@ -51,7 +51,7 @@ export const analyzeResponseSchema = {
       items: { $ref: 'Issue' },
       default: [],
     },
-    direct_pushes: {
+    commits: {
       type: 'array',
       items: { $ref: 'Commit' },
       default: [],

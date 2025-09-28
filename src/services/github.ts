@@ -1,5 +1,6 @@
 import { Octokit } from '@octokit/rest';
 import type { PullRequestAnalysis } from '../types/index.js';
+import { Commit } from '../types/index.js';
 
 export class GitHubService {
   private octokit: Octokit;
@@ -530,5 +531,71 @@ export class GitHubService {
 
     console.log(`🎉 Found ${issues.length} issues in date range`);
     return issues;
+  }
+
+  /**
+   * Fetch all commits for the default branch within a date range
+   */
+  async fetchCommitsForDefaultBranch(
+    owner: string,
+    repo: string,
+    since: Date,
+    until?: Date
+  ): Promise<Commit[]> {
+    const commits: Commit[] = [];
+    let page = 1;
+    const perPage = 100;
+
+    console.log(
+      `🔍 Fetching commits for default branch of ${owner}/${repo}...`
+    );
+
+    let hasMore = true;
+    while (hasMore) {
+      const response = await this.octokit.repos.listCommits({
+        owner,
+        repo,
+        since: since.toISOString(),
+        until: until?.toISOString(),
+        per_page: perPage,
+        page,
+      });
+
+      if (response.data.length === 0) {
+        console.log('📄 No more commits found');
+        hasMore = false;
+        break;
+      }
+
+      console.log(
+        `📋 Processing ${response.data.length} commits from page ${page}...`
+      );
+
+      for (const commit of response.data) {
+        commits.push({
+          sha: commit.sha,
+          committer: commit.committer?.login || 'unknown',
+          message: commit.commit.message,
+          date: commit.commit.author?.date || new Date().toISOString(),
+          additions: 0, // Placeholder, as additions/deletions are not available here
+          deletions: 0, // Placeholder
+          ci_status: 'unknown', // Placeholder
+        });
+      }
+
+      if (response.data.length < perPage) {
+        console.log(`📄 Reached final page (page ${page})`);
+        hasMore = false;
+        break;
+      }
+
+      console.log(`📄 Completed page ${page}, moving to next page...`);
+      page++;
+    }
+
+    console.log(
+      `🎉 Completed fetching! Found ${commits.length} commits in date range`
+    );
+    return commits;
   }
 }
