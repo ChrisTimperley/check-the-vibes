@@ -152,20 +152,17 @@ export const ContributorsSection: React.FC<ContributorsSectionProps> = ({
                         label={`Reviewed: ${metrics.prs.reviewed}`}
                         size="small"
                         color="secondary"
-                        variant="outlined"
                       />
                       <Chip
                         label={`Closed: ${metrics.prs.closed}`}
                         size="small"
-                        color="success"
-                        variant="outlined"
+                        color="secondary"
                       />
                       {metrics.prs.comments > 0 && (
                         <Chip
                           label={`Comments: ${metrics.prs.comments}`}
                           size="small"
-                          color="info"
-                          variant="outlined"
+                          color="secondary"
                         />
                       )}
                     </Box>
@@ -190,20 +187,17 @@ export const ContributorsSection: React.FC<ContributorsSectionProps> = ({
                         label={`Assigned: ${metrics.issues.assigned}`}
                         size="small"
                         color="warning"
-                        variant="outlined"
                       />
                       <Chip
                         label={`Closed: ${metrics.issues.closed}`}
                         size="small"
-                        color="success"
-                        variant="outlined"
+                        color="warning"
                       />
                       {metrics.issues.comments > 0 && (
                         <Chip
                           label={`Comments: ${metrics.issues.comments}`}
                           size="small"
                           color="info"
-                          variant="outlined"
                         />
                       )}
                     </Box>
