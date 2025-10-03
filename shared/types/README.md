@@ -41,12 +41,11 @@ import type {
 ## Available Types
 
 - `AnalysisReport` - Complete analysis response from the API
+- `AnalysisSummary` - Summary statistics for the analysis (contributors, PRs, issues)
 - `PullRequest` - Pull request data
 - `Issue` - Issue data
 - `Commit` - Commit data
-- `Contributor` - Contributor statistics
-
-## Adding New Types
+- `Contributor` - Contributor statistics## Adding New Types
 
 When adding new shared types:
 

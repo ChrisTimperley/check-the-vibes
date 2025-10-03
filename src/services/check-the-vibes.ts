@@ -1,6 +1,7 @@
 import { GitHubService } from './github.js';
 import type {
   AnalysisReport,
+  AnalysisSummary,
   Contributor,
   PullRequest,
   Commit,
@@ -26,7 +27,6 @@ export class CheckTheVibesService {
     from: Date,
     to: Date
   ): Promise<AnalysisReport> {
-    // Fetch PRs, commits, and issues in parallel
     const [pullRequests, commits, issues] = await Promise.all([
       this.github.getPullRequestsSince(owner, repo, from, to),
       this.github.fetchCommitsForDefaultBranch(owner, repo, from, to),
@@ -37,7 +37,7 @@ export class CheckTheVibesService {
     const contributors = this.aggregateContributors(pullRequests, commits);
 
     // Calculate summary metrics
-    const summary = {
+    const summary: AnalysisSummary = {
       contributors_active: contributors.length,
       prs_opened: pullRequests.length,
       issues_opened: issues.filter((i) => !i.is_closed).length,

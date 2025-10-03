@@ -4,19 +4,21 @@
  * to ensure type consistency across the full stack.
  */
 
+export interface AnalysisSummary {
+  contributors_active: number;
+  prs_opened: number;
+  issues_opened: number;
+  issues_closed: number;
+  pct_prs_reviewed: number;
+}
+
 export interface AnalysisReport {
   repo: string;
   window: {
     from: string;
     to: string;
   };
-  summary: {
-    contributors_active: number;
-    prs_opened: number;
-    issues_opened: number;
-    issues_closed: number;
-    pct_prs_reviewed: number;
-  };
+  summary: AnalysisSummary;
   contributors: Contributor[];
   pull_requests: PullRequest[];
   commits?: Commit[];
