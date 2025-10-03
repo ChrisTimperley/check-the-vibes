@@ -13,8 +13,19 @@ import {
   Link,
   Chip,
   TableSortLabel,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  FormControl,
+  FormLabel,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+  Badge,
 } from '@mui/material';
-import { Settings } from '@mui/icons-material';
+import { FilterAlt } from '@mui/icons-material';
 import { Issue } from '../types';
 import { formatDate } from '../utils/dateUtils';
 
@@ -29,6 +40,12 @@ interface IssuesSectionProps {
   repo: string;
 }
 
+interface IssueFilters {
+  author: string;
+  status: 'all' | 'open' | 'closed';
+  linkedPR: 'all' | 'with' | 'without';
+}
+
 export const IssuesSection: React.FC<IssuesSectionProps> = ({
   issues,
   owner,
@@ -36,6 +53,12 @@ export const IssuesSection: React.FC<IssuesSectionProps> = ({
 }) => {
   const [sortBy, setSortBy] = useState<keyof Issue>('created_at');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [filterDialogOpen, setFilterDialogOpen] = useState(false);
+  const [filters, setFilters] = useState<IssueFilters>({
+    author: '',
+    status: 'all',
+    linkedPR: 'all',
+  });
 
   // Sort issues based on current sort criteria
   const sortedIssues = useMemo(() => {
@@ -68,6 +91,43 @@ export const IssuesSection: React.FC<IssuesSectionProps> = ({
     });
   }, [issues, sortBy, sortDirection]);
 
+  // Apply filters to sorted issues
+  const filteredIssues = useMemo(() => {
+    return sortedIssues.filter((issue) => {
+      // Author filter
+      if (filters.author && !issue.author.toLowerCase().includes(filters.author.toLowerCase())) {
+        return false;
+      }
+
+      // Status filter
+      if (filters.status === 'open' && issue.is_closed) {
+        return false;
+      }
+      if (filters.status === 'closed' && !issue.is_closed) {
+        return false;
+      }
+
+      // Linked PR filter
+      if (filters.linkedPR === 'with' && (!issue.linked_prs || issue.linked_prs.length === 0)) {
+        return false;
+      }
+      if (filters.linkedPR === 'without' && issue.linked_prs && issue.linked_prs.length > 0) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [sortedIssues, filters]);
+
+  // Count active filters
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (filters.author) count++;
+    if (filters.status !== 'all') count++;
+    if (filters.linkedPR !== 'all') count++;
+    return count;
+  }, [filters]);
+
   const handleSort = (column: keyof Issue) => {
     if (sortBy === column) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -75,6 +135,18 @@ export const IssuesSection: React.FC<IssuesSectionProps> = ({
       setSortBy(column);
       setSortDirection('asc');
     }
+  };
+
+  const handleClearFilters = () => {
+    setFilters({
+      author: '',
+      status: 'all',
+      linkedPR: 'all',
+    });
+  };
+
+  const handleApplyFilters = () => {
+    setFilterDialogOpen(false);
   };
   return (
     <Card sx={{ mb: 4 }}>
@@ -92,12 +164,18 @@ export const IssuesSection: React.FC<IssuesSectionProps> = ({
               Issues
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              {issues.length} issues in this period
+              {filteredIssues.length} of {issues.length} issues
             </Typography>
           </div>
-          <Button variant="outlined" startIcon={<Settings />}>
-            Filter
-          </Button>
+          <Badge badgeContent={activeFilterCount} color="primary">
+            <Button 
+              variant="outlined" 
+              startIcon={<FilterAlt />}
+              onClick={() => setFilterDialogOpen(true)}
+            >
+              Filter
+            </Button>
+          </Badge>
         </Box>
 
         <Table size="small">
@@ -188,7 +266,7 @@ export const IssuesSection: React.FC<IssuesSectionProps> = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {sortedIssues.map((issue) => {
+            {filteredIssues.map((issue) => {
               // Render assignees
               const renderAssignees = () => {
                 if (!issue.assignees || issue.assignees.length === 0) {
@@ -326,6 +404,60 @@ export const IssuesSection: React.FC<IssuesSectionProps> = ({
             })}
           </TableBody>
         </Table>
+
+        {/* Filter Dialog */}
+        <Dialog 
+          open={filterDialogOpen} 
+          onClose={() => setFilterDialogOpen(false)}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>Filter Issues</DialogTitle>
+          <DialogContent>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 2 }}>
+              {/* Author Filter */}
+              <TextField
+                label="Author"
+                placeholder="Filter by author username"
+                value={filters.author}
+                onChange={(e) => setFilters({ ...filters, author: e.target.value })}
+                fullWidth
+                size="small"
+              />
+
+              {/* Status Filter */}
+              <FormControl>
+                <FormLabel>Status</FormLabel>
+                <RadioGroup
+                  value={filters.status}
+                  onChange={(e) => setFilters({ ...filters, status: e.target.value as IssueFilters['status'] })}
+                >
+                  <FormControlLabel value="all" control={<Radio />} label="All" />
+                  <FormControlLabel value="open" control={<Radio />} label="Open" />
+                  <FormControlLabel value="closed" control={<Radio />} label="Closed" />
+                </RadioGroup>
+              </FormControl>
+
+              {/* Linked PR Filter */}
+              <FormControl>
+                <FormLabel>Linked Pull Request</FormLabel>
+                <RadioGroup
+                  value={filters.linkedPR}
+                  onChange={(e) => setFilters({ ...filters, linkedPR: e.target.value as IssueFilters['linkedPR'] })}
+                >
+                  <FormControlLabel value="all" control={<Radio />} label="All" />
+                  <FormControlLabel value="with" control={<Radio />} label="Has linked PR" />
+                  <FormControlLabel value="without" control={<Radio />} label="No linked PR" />
+                </RadioGroup>
+              </FormControl>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleClearFilters}>Clear All</Button>
+            <Button onClick={() => setFilterDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleApplyFilters} variant="contained">Apply</Button>
+          </DialogActions>
+        </Dialog>
       </CardContent>
     </Card>
   );
