@@ -54,7 +54,7 @@ export class CheckTheVibesService {
       summary,
       contributors,
       pull_requests: this.transformPullRequests(pullRequests),
-      commits: this.transformCommits(commits),
+      commits: commits,
       issues,
     };
   }
@@ -129,21 +129,6 @@ export class CheckTheVibesService {
       ci_status: p.ciStatus || 'unknown',
       url: p.url,
       comments: p.commentCount || 0,
-    }));
-  }
-
-  /**
-   * Transform commits to API response format
-   */
-  private transformCommits(commits: Commit[]): Commit[] {
-    return commits.map((c) => ({
-      sha: c.sha,
-      committer: c.committer || 'unknown',
-      message: c.message || 'No message',
-      date: c.date || new Date().toISOString(),
-      ci_status: c.ci_status || 'unknown',
-      additions: c.additions || 0,
-      deletions: c.deletions || 0,
     }));
   }
 

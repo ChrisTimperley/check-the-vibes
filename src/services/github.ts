@@ -269,155 +269,6 @@ export class GitHubService {
     }
   }
 
-  async getCommitsSince(
-    owner: string,
-    repo: string,
-    since: Date,
-    until?: Date
-  ): Promise<any[]> {
-    const commits: any[] = [];
-    let page = 1;
-    const perPage = 100;
-
-    console.log(`🔍 Fetching commits from ${owner}/${repo}...`);
-
-    let hasMore = true;
-    while (hasMore) {
-      console.log(`📄 Fetching commit page ${page}...`);
-
-      const response = await this.octokit.repos.listCommits({
-        owner,
-        repo,
-        since: since.toISOString(),
-        until: until?.toISOString(),
-        per_page: perPage,
-        page,
-      });
-
-      if (response.data.length === 0) {
-        console.log('📄 No more commits found');
-        hasMore = false;
-        break;
-      }
-
-      for (const commit of response.data) {
-        try {
-          const commitDetail = await this.octokit.repos.getCommit({
-            owner,
-            repo,
-            ref: commit.sha,
-          });
-
-          // Include all commits on the default branch
-          console.log(
-            `📋 Including commit: ${commit.sha.slice(0, 7)} - "${commit.commit.message.split('\n')[0]}"`
-          );
-
-          // Fetch detailed stats and CI status for included commits
-          let additions = commitDetail.data.stats?.additions || 0;
-          let deletions = commitDetail.data.stats?.deletions || 0;
-          let ciStatus = 'unknown';
-
-          // Fetch CI status from check runs and status checks
-          try {
-            const [checkRuns, statusChecks] = await Promise.all([
-              this.octokit.checks
-                .listForRef({
-                  owner,
-                  repo,
-                  ref: commit.sha,
-                })
-                .catch(() => ({ data: { check_runs: [] } })),
-              this.octokit.repos
-                .getCombinedStatusForRef({
-                  owner,
-                  repo,
-                  ref: commit.sha,
-                })
-                .catch(() => ({ data: { state: 'none' } })),
-            ]);
-
-            // Determine CI status based on check runs and status checks
-            if (
-              checkRuns.data.check_runs &&
-              checkRuns.data.check_runs.length > 0
-            ) {
-              const hasFailure = checkRuns.data.check_runs.some(
-                (run) =>
-                  run.conclusion === 'failure' || run.conclusion === 'cancelled'
-              );
-              const hasSuccess = checkRuns.data.check_runs.some(
-                (run) => run.conclusion === 'success'
-              );
-              const hasPending = checkRuns.data.check_runs.some(
-                (run) => run.status === 'in_progress' || run.status === 'queued'
-              );
-
-              if (hasFailure) ciStatus = 'fail';
-              else if (hasPending) ciStatus = 'pending';
-              else if (hasSuccess) ciStatus = 'pass';
-            } else if (
-              statusChecks.data.state &&
-              statusChecks.data.state !== 'none'
-            ) {
-              // Fall back to status checks
-              switch (statusChecks.data.state) {
-                case 'success':
-                  ciStatus = 'pass';
-                  break;
-                case 'failure':
-                case 'error':
-                  ciStatus = 'fail';
-                  break;
-                case 'pending':
-                  ciStatus = 'pending';
-                  break;
-                default:
-                  ciStatus = 'unknown';
-              }
-            } else {
-              ciStatus = 'none';
-            }
-          } catch (error) {
-            console.warn(
-              `Failed to fetch CI status for commit ${commit.sha.slice(0, 7)}:`,
-              error
-            );
-            ciStatus = 'unknown';
-          }
-
-          commits.push({
-            sha: commit.sha,
-            committer:
-              commit.author?.login || commit.commit.author?.name || 'Unknown',
-            message: commit.commit.message,
-            date: commit.commit.author?.date || commit.commit.committer?.date,
-            additions,
-            deletions,
-            ci_status: ciStatus,
-          });
-        } catch (error) {
-          console.warn(
-            `Failed to fetch commit details for ${commit.sha.slice(0, 7)}:`,
-            error
-          );
-          continue;
-        }
-      }
-
-      if (response.data.length < perPage) {
-        console.log(`📄 Reached final page (page ${page})`);
-        hasMore = false;
-        break;
-      }
-
-      page++;
-    }
-
-    console.log(`🎉 Found ${commits.length} commits in date range`);
-    return commits;
-  }
-
   async getIssuesSince(
     owner: string,
     repo: string,
@@ -555,6 +406,12 @@ export class GitHubService {
                     additions
                     deletions
                     author { user { login } name }
+                    associatedPullRequests(first: 1) {
+                      nodes {
+                        number
+                        merged
+                      }
+                    }
                     checkSuites(first: 50) {
                       nodes {
                         checkRuns(first: 50) {
@@ -650,6 +507,10 @@ export class GitHubService {
           ciStatus = 'unknown';
         }
 
+        // Find associated PR (if any)
+        const associatedPR = node.associatedPullRequests?.nodes?.[0];
+        const prNumber = associatedPR?.merged ? associatedPR.number : null;
+
         commits.push({
           sha,
           committer,
@@ -657,6 +518,7 @@ export class GitHubService {
           date,
           additions,
           deletions,
+          pr: prNumber,
           ci_status: ciStatus,
         });
       }

@@ -109,7 +109,19 @@ export const CommitsSection: React.FC<CommitsSectionProps> = ({
                     </Box>
                   </TableCell>
                   <TableCell>{formatDateTime(c.date)}</TableCell>
-                  <TableCell>—</TableCell>
+                  <TableCell>
+                    {c.pr ? (
+                      <Link
+                        href={`https://github.com/${owner}/${repo}/pull/${c.pr}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        #{c.pr}
+                      </Link>
+                    ) : (
+                      '—'
+                    )}
+                  </TableCell>
                   <TableCell>
                     <Chip
                       label={
