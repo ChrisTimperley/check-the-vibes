@@ -559,7 +559,10 @@ export class GitHubService {
 
     // Step 2: For each ref, query commit history
     const sinceIso = since.toISOString();
-    const untilIso = until?.toISOString();
+    // For the end date, add 1 day to make it inclusive
+    const untilIso = until
+      ? new Date(until.getTime() + 24 * 60 * 60 * 1000).toISOString()
+      : undefined;
 
     for (const ref of refs) {
       console.log(`  � Querying commits for ref: ${ref.name}`);
