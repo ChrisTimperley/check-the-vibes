@@ -18,6 +18,7 @@ import {
   ContributorsSection,
   IssuesSection,
   CommitsSection,
+  BranchesSection,
 } from './components';
 
 function App() {
@@ -175,6 +176,12 @@ function App() {
 
             <CommitsSection
               commits={data.commits || []}
+              owner={owner}
+              repo={repo}
+            />
+
+            <BranchesSection
+              branches={data.branches || []}
               owner={owner}
               repo={repo}
             />

@@ -4,3 +4,4 @@ export { PullRequestsSection } from './PullRequestsSection';
 export { ContributorsSection } from './ContributorsSection';
 export { IssuesSection } from './IssuesSection';
 export { CommitsSection } from './CommitsSection';
+export { BranchesSection } from './BranchesSection';

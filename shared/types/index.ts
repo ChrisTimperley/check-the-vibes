@@ -23,6 +23,7 @@ export interface AnalysisReport {
   pull_requests: PullRequest[];
   commits?: Commit[];
   issues: Issue[];
+  branches?: Branch[];
 }
 
 export interface Contributor {
@@ -75,4 +76,14 @@ export interface Commit {
   ci_status?: 'pass' | 'fail' | 'pending' | 'unknown' | 'none';
   additions?: number;
   deletions?: number;
+}
+
+export interface Branch {
+  name: string;
+  last_commit_sha: string;
+  last_commit_date: string;
+  contributors: string[];
+  ahead_by?: number;
+  behind_by?: number;
+  url: string;
 }
