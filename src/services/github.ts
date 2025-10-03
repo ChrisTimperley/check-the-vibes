@@ -524,4 +524,168 @@ export class GitHubService {
     );
     return commits;
   }
+
+  /**
+   * Get commit counts for all contributors across ALL branches within a date range.
+   * Uses GraphQL to query all refs (branches) and aggregate unique commits.
+   * Returns a map of login -> commit count.
+   */
+  async getCommitCountsAcrossBranches(
+    owner: string,
+    repo: string,
+    since: Date,
+    until?: Date
+  ): Promise<Map<string, number>> {
+    console.log(
+      `🔍 Fetching commit counts across all branches for ${owner}/${repo}...`
+    );
+
+    const commitCounts = new Map<string, number>();
+    const seenShas = new Set<string>(); // Track unique commits across all branches
+
+    // Step 1: Get all refs (branches and tags)
+    console.log(`  📋 Fetching repository refs...`);
+    const refs = await this.getRepositoryRefs(owner, repo);
+    console.log(`  ✅ Found ${refs.length} refs to query`);
+
+    // Step 2: For each ref, query commit history
+    const sinceIso = since.toISOString();
+    const untilIso = until?.toISOString();
+
+    for (const ref of refs) {
+      console.log(`  � Querying commits for ref: ${ref.name}`);
+
+      const query = `
+        query($owner: String!, $repo: String!, $refName: String!, $since: GitTimestamp, $until: GitTimestamp) {
+          repository(owner: $owner, name: $repo) {
+            ref(qualifiedName: $refName) {
+              target {
+                ... on Commit {
+                  history(first: 100, since: $since, until: $until) {
+                    pageInfo {
+                      hasNextPage
+                      endCursor
+                    }
+                    nodes {
+                      oid
+                      author {
+                        name
+                        email
+                        user {
+                          login
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      `;
+
+      try {
+        const result: any = await this.octokit.graphql(query, {
+          owner,
+          repo,
+          refName: ref.name,
+          since: sinceIso,
+          until: untilIso,
+        });
+
+        const history = result.repository?.ref?.target?.history;
+        if (!history) continue;
+
+        const nodes = history.nodes || [];
+        console.log(`    ✅ Found ${nodes.length} commits on ${ref.name}`);
+
+        for (const node of nodes) {
+          const sha = node.oid;
+
+          // Skip if we've already counted this commit
+          if (seenShas.has(sha)) continue;
+          seenShas.add(sha);
+
+          // Get author login
+          const login =
+            node.author?.user?.login || node.author?.name || 'unknown';
+
+          // Skip bots
+          if (login.endsWith('[bot]')) continue;
+
+          commitCounts.set(login, (commitCounts.get(login) || 0) + 1);
+        }
+
+        // TODO: Handle pagination if needed (hasNextPage)
+        // For now, we're limiting to 100 commits per branch
+      } catch (error: any) {
+        console.warn(
+          `  ⚠️  Failed to query ref ${ref.name}:`,
+          error?.message || error
+        );
+      }
+    }
+
+    console.log(
+      `🎉 Found ${commitCounts.size} contributors with ${seenShas.size} unique commits across all branches`
+    );
+    return commitCounts;
+  }
+
+  /**
+   * Get all refs (branches) for a repository
+   */
+  private async getRepositoryRefs(
+    owner: string,
+    repo: string
+  ): Promise<Array<{ name: string; type: 'branch' | 'tag' }>> {
+    const refs: Array<{ name: string; type: 'branch' | 'tag' }> = [];
+
+    const query = `
+      query($owner: String!, $repo: String!, $after: String) {
+        repository(owner: $owner, name: $repo) {
+          refs(first: 100, refPrefix: "refs/heads/", after: $after) {
+            pageInfo {
+              hasNextPage
+              endCursor
+            }
+            nodes {
+              name
+            }
+          }
+        }
+      }
+    `;
+
+    let hasNext = true;
+    let after: string | null = null;
+
+    try {
+      while (hasNext) {
+        const result: any = await this.octokit.graphql(query, {
+          owner,
+          repo,
+          after,
+        });
+
+        const refsData = result.repository?.refs;
+        if (!refsData) break;
+
+        const nodes = refsData.nodes || [];
+        for (const node of nodes) {
+          refs.push({
+            name: `refs/heads/${node.name}`,
+            type: 'branch',
+          });
+        }
+
+        hasNext = refsData.pageInfo?.hasNextPage || false;
+        after = refsData.pageInfo?.endCursor || null;
+      }
+    } catch (error: any) {
+      console.error('❌ Failed to fetch refs:', error?.message || error);
+    }
+
+    return refs;
+  }
 }

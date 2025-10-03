@@ -27,7 +27,8 @@ export interface AnalysisReport {
 
 export interface Contributor {
   login: string;
-  commits: number;
+  commits: number; // Commits to default branch
+  commits_all_branches: number; // Unique commits across all branches
   prs: number;
   avatar_url?: string;
 }

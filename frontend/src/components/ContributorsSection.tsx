@@ -125,11 +125,15 @@ export const ContributorsSection: React.FC<ContributorsSectionProps> = ({
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                       <Chip
-                        label={`Total: ${contributor.commits}`}
+                        label={`Default: ${contributor.commits}`}
                         size="small"
                         color="primary"
                       />
-                      {/* direct_pushes_default removed; only show total commits */}
+                      <Chip
+                        label={`All Branches: ${contributor.commits_all_branches}`}
+                        size="small"
+                        color="primary"
+                      />
                     </Box>
                   </Box>
 

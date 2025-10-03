@@ -26,14 +26,20 @@ export class CommitCultureService {
     from: Date,
     to: Date
   ): Promise<AnalysisReport> {
-    const [pullRequests, commits, issues] = await Promise.all([
-      this.github.getPullRequestsSince(owner, repo, from, to),
-      this.github.fetchCommitsForDefaultBranch(owner, repo, from, to),
-      this.github.getIssuesSince(owner, repo, from, to),
-    ]);
+    const [pullRequests, commits, issues, allBranchesCommitCounts] =
+      await Promise.all([
+        this.github.getPullRequestsSince(owner, repo, from, to),
+        this.github.fetchCommitsForDefaultBranch(owner, repo, from, to),
+        this.github.getIssuesSince(owner, repo, from, to),
+        this.github.getCommitCountsAcrossBranches(owner, repo, from, to),
+      ]);
 
     // Aggregate contributor data
-    const contributors = this.aggregateContributors(pullRequests, commits);
+    const contributors = this.aggregateContributors(
+      pullRequests,
+      commits,
+      allBranchesCommitCounts
+    );
 
     // Calculate summary metrics
     const summary: AnalysisSummary = {
@@ -63,32 +69,57 @@ export class CommitCultureService {
    */
   private aggregateContributors(
     pullRequests: PullRequest[],
-    commits: Commit[]
+    commits: Commit[],
+    allBranchesCommitCounts: Map<string, number>
   ): Contributor[] {
     const contribMap = new Map<
       string,
       {
         login: string;
         commits: number;
+        commits_all_branches: number;
         prs: number;
       }
     >();
 
-    // FIXME: we would like to count ALL commits across all branches here
-    // Count commits by committer
+    // Count commits to default branch by committer
     for (const c of commits) {
       const login = (c.committer as string) || 'unknown';
       if (!contribMap.has(login)) {
-        contribMap.set(login, { login, commits: 0, prs: 0 });
+        contribMap.set(login, {
+          login,
+          commits: 0,
+          commits_all_branches: 0,
+          prs: 0,
+        });
       }
       contribMap.get(login)!.commits += 1;
+    }
+
+    // Add commit counts across all branches
+    for (const [login, count] of allBranchesCommitCounts.entries()) {
+      if (!contribMap.has(login)) {
+        contribMap.set(login, {
+          login,
+          commits: 0,
+          commits_all_branches: count,
+          prs: 0,
+        });
+      } else {
+        contribMap.get(login)!.commits_all_branches = count;
+      }
     }
 
     // Count PRs by author
     for (const pr of pullRequests) {
       const login = pr.author || 'unknown';
       if (!contribMap.has(login)) {
-        contribMap.set(login, { login, commits: 0, prs: 0 });
+        contribMap.set(login, {
+          login,
+          commits: 0,
+          commits_all_branches: 0,
+          prs: 0,
+        });
       }
       contribMap.get(login)!.prs += 1;
     }
@@ -104,6 +135,7 @@ export class CommitCultureService {
     return Array.from(contribMap.values()).map((c) => ({
       login: c.login,
       commits: c.commits,
+      commits_all_branches: c.commits_all_branches,
       prs: c.prs,
       avatar_url: `https://avatars.githubusercontent.com/${c.login}`,
     }));
