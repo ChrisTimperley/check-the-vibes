@@ -1,5 +1,5 @@
 /**
- * Shared type definitions for check-the-vibes
+ * Shared type definitions for commit-culture
  * These types are used by both the backend API and frontend application
  * to ensure type consistency across the full stack.
  */

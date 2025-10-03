@@ -1,12 +1,12 @@
-# Check the Vibes
+# Commit Culture
 
-A web application that analyzes GitHub repositories to assess software engineering best practices and team collaboration. View detailed metrics about pull requests, issues, and contributor activity through an interactive dashboard.
+A web application that analyzes GitHub repositories to assess team collaboration and development culture. View detailed metrics about pull requests, issues, and contributor activity through an interactive dashboard.
 
 ## Features
 
 - 📊 **Pull Request Analysis**: View PR metrics including lines changed, review activity, and merge patterns
 - 🔗 **Issue Tracking**: Browse and analyze GitHub issues with sorting capabilities
-- � **Team Collaboration**: Track contributor activity, commits, and participation metrics
+- 👥 **Team Collaboration**: Track contributor activity, commits, and participation metrics
 - 🌐 **Interactive Dashboard**: Modern React UI with real-time GitHub API integration
 
 ## Installation
@@ -21,8 +21,8 @@ A web application that analyzes GitHub repositories to assess software engineeri
 1. **Clone and install**:
 
    ```bash
-   git clone https://github.com/ChrisTimperley/check-the-vibes.git
-   cd check-the-vibes
+   git clone https://github.com/ChrisTimperley/commit-culture.git
+   cd commit-culture
    npm install
    ```
 

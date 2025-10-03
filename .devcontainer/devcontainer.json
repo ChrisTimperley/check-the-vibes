@@ -1,5 +1,5 @@
 {
-  "name": "Check the Vibes - Node.js & TypeScript",
+  "name": "Commit Culture - Node.js & TypeScript",
   "image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
   "features": {
     "ghcr.io/devcontainers/features/github-cli:1": {},

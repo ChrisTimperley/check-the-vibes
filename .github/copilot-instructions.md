@@ -1,8 +1,8 @@
-# Copilot Instructions for check-the-vibes
+# Copilot Instructions for commit-culture
 
 ## Project Overview
 
-Check-the-vibes is a web application that analyzes GitHub repositories to assess software engineering best practices and team collaboration. It provides detailed metrics about pull requests, issues, and contributor activity through an interactive dashboard.
+Commit Culture is a web application that analyzes GitHub repositories to assess team collaboration and development culture. It provides detailed metrics about pull requests, issues, and contributor activity through an interactive dashboard.
 
 **Architecture:** Full-stack TypeScript application with:
 

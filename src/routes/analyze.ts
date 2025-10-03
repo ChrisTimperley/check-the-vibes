@@ -1,5 +1,5 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { CheckTheVibesService } from '../services/check-the-vibes.js';
+import { CommitCultureService } from '../services/commit-culture.js';
 import { validateAnalyzeQuery } from '../utils/validation.js';
 
 export const analyzeRoutes: FastifyPluginAsync = async (fastify) => {
@@ -16,7 +16,7 @@ export const analyzeRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       // Perform analysis
-      const service = new CheckTheVibesService(process.env.GITHUB_TOKEN);
+      const service = new CommitCultureService(process.env.GITHUB_TOKEN);
       const result = await service.analyzeRepository(owner, repoName, from, to);
 
       return result;

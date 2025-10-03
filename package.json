@@ -1,7 +1,7 @@
 {
-  "name": "check-the-vibes",
+  "name": "commit-culture",
   "version": "1.0.0",
-  "description": "A web application that analyzes GitHub repositories to assess software engineering best practices and teamwork",
+  "description": "A web application that analyzes GitHub repositories to assess team collaboration and development culture",
   "type": "module",
   "main": "dist/index.js",
   "engines": {

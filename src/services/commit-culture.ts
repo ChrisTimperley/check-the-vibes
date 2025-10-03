@@ -11,7 +11,7 @@ import type { PullRequestAnalysis } from '../types/index.js';
 /**
  * Service for analyzing GitHub repositories and generating metrics
  */
-export class CheckTheVibesService {
+export class CommitCultureService {
   private github: GitHubService;
 
   constructor(githubToken?: string) {

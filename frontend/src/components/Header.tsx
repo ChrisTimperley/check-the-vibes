@@ -34,7 +34,7 @@ export const Header: React.FC<HeaderProps> = ({
     <AppBar position="static" className="dashboard-header">
       <Toolbar>
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          Check the Vibes {hasAnalyzed && owner && repo && `- ${owner}/${repo}`}
+          Commit Culture
         </Typography>
 
         <FormControl
