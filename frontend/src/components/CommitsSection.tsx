@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -9,6 +9,7 @@ import {
   TableRow,
   TableCell,
   TableBody,
+  TableSortLabel,
   Link,
   Chip,
 } from '@mui/material';
@@ -26,6 +27,46 @@ export const CommitsSection: React.FC<CommitsSectionProps> = ({
   owner,
   repo,
 }) => {
+  const [sortBy, setSortBy] = useState<keyof Commit>('date');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+
+  // Sort commits based on current sort criteria
+  const sortedCommits = useMemo(() => {
+    return [...commits].sort((a, b) => {
+      let aValue: any = a[sortBy];
+      let bValue: any = b[sortBy];
+
+      // Handle special sorting cases
+      if (sortBy === 'date') {
+        aValue = new Date(aValue).getTime();
+        bValue = new Date(bValue).getTime();
+      } else if (sortBy === 'additions' || sortBy === 'deletions') {
+        aValue = aValue ?? 0;
+        bValue = bValue ?? 0;
+      } else if (sortBy === 'pr') {
+        aValue = aValue ?? Number.MAX_SAFE_INTEGER; // Put null PRs at the end
+        bValue = bValue ?? Number.MAX_SAFE_INTEGER;
+      }
+
+      if (aValue < bValue) {
+        return sortDirection === 'asc' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortDirection === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+  }, [commits, sortBy, sortDirection]);
+
+  const handleSort = (column: keyof Commit) => {
+    if (sortBy === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(column);
+      setSortDirection('asc');
+    }
+  };
+
   return (
     <Card sx={{ mb: 4 }}>
       <CardContent>
@@ -51,16 +92,64 @@ export const CommitsSection: React.FC<CommitsSectionProps> = ({
             <TableHead>
               <TableRow>
                 <TableCell sx={{ fontWeight: 700 }}>SHA</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>Committer</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>Message</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>Lines</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>Date</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>PR</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>CI</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>
+                  <TableSortLabel
+                    active={sortBy === 'committer'}
+                    direction={sortBy === 'committer' ? sortDirection : 'asc'}
+                    onClick={() => handleSort('committer')}
+                  >
+                    Committer
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>
+                  <TableSortLabel
+                    active={sortBy === 'message'}
+                    direction={sortBy === 'message' ? sortDirection : 'asc'}
+                    onClick={() => handleSort('message')}
+                  >
+                    Message
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>
+                  <TableSortLabel
+                    active={sortBy === 'additions'}
+                    direction={sortBy === 'additions' ? sortDirection : 'asc'}
+                    onClick={() => handleSort('additions')}
+                  >
+                    Lines
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>
+                  <TableSortLabel
+                    active={sortBy === 'date'}
+                    direction={sortBy === 'date' ? sortDirection : 'asc'}
+                    onClick={() => handleSort('date')}
+                  >
+                    Date
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>
+                  <TableSortLabel
+                    active={sortBy === 'pr'}
+                    direction={sortBy === 'pr' ? sortDirection : 'asc'}
+                    onClick={() => handleSort('pr')}
+                  >
+                    PR
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>
+                  <TableSortLabel
+                    active={sortBy === 'ci_status'}
+                    direction={sortBy === 'ci_status' ? sortDirection : 'asc'}
+                    onClick={() => handleSort('ci_status')}
+                  >
+                    CI
+                  </TableSortLabel>
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {commits.map((c) => (
+              {sortedCommits.map((c) => (
                 <TableRow key={c.sha}>
                   <TableCell>
                     <Link
