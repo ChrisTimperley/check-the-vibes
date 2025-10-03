@@ -38,18 +38,11 @@ export const analyzeRoutes: FastifyPluginAsync = async (fastify) => {
         const until = to ? new Date(to) : new Date();
 
         // Fetch PRs, commits, and issues in parallel
-        const [pullRequests, issues] = await Promise.all([
+        const [pullRequests, commits, issues] = await Promise.all([
           github.getPullRequestsSince(owner, repoName, since, until),
+          github.fetchCommitsForDefaultBranch(owner, repoName, since, until),
           github.getIssuesSince(owner, repoName, since, until),
         ]);
-
-        // Update the commits array to include all commits to the default branch
-        const commits = await github.fetchCommitsForDefaultBranch(
-          owner,
-          repoName,
-          since,
-          until
-        );
 
         // Basic aggregation for contributors
         const contribMap = new Map<
@@ -61,6 +54,7 @@ export const analyzeRoutes: FastifyPluginAsync = async (fastify) => {
           }
         >();
 
+        // FIXME we would like to count ALL commits across all branches here
         // Count commits by committer (commits array contains simplified Commit objects)
         for (const c of commits) {
           const login = (c.committer as string) || 'unknown';

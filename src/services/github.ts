@@ -107,9 +107,6 @@ export class GitHubService {
     prNumber: number
   ): Promise<PullRequestAnalysis> {
     console.log(`  📊 Fetching detailed data for PR #${prNumber} (graphql)...`);
-
-    // Use a single GraphQL query to fetch aggregated PR data and the head commit's check runs.
-    // This dramatically reduces REST API calls compared to listing files, commits, reviews, and comments separately.
     const query = `
       query($owner: String!, $repo: String!, $number: Int!) {
         repository(owner: $owner, name: $repo) {
@@ -172,6 +169,7 @@ export class GitHubService {
     const totalDeletions = pr.deletions || 0;
     const linkedIssue = pr.closingIssuesReferences?.nodes?.[0]?.number || null;
 
+    // FIXME this code is horrible! it needs to be cleaned up
     // Determine CI status from check runs returned for the head commit (if any)
     let ciStatus: 'success' | 'failure' | 'pending' | 'unknown' = 'unknown';
     try {
