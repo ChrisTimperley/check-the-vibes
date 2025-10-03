@@ -272,7 +272,12 @@ export class GitHubService {
     const perPage = 50;
     let after: string | null = null;
     const sinceIso = since.toISOString().split('T')[0];
-    const untilIso = until ? until.toISOString().split('T')[0] : null;
+    // For the end date, add 1 day to make it inclusive (GitHub search uses start of day)
+    const untilIso = until
+      ? new Date(until.getTime() + 24 * 60 * 60 * 1000)
+          .toISOString()
+          .split('T')[0]
+      : null;
 
     console.log(`🔍 Fetching issues (graphql) from ${owner}/${repo}...`);
 
@@ -303,7 +308,8 @@ export class GitHubService {
 
     // Build search qualifier string. Use created range and is:issue to exclude PRs.
     let searchQual = `repo:${owner}/${repo} is:issue created:>=${sinceIso}`;
-    if (untilIso) searchQual += ` created:<=${untilIso}`;
+    // Use < instead of <= since we already added 1 day to make it inclusive
+    if (untilIso) searchQual += ` created:<${untilIso}`;
     // Sort by created desc to help early termination
     searchQual += ' sort:created-desc';
 
@@ -425,7 +431,10 @@ export class GitHubService {
     `;
 
     const sinceIso = since.toISOString();
-    const untilIso = until ? until.toISOString() : undefined;
+    // For the end date, add 1 day to make it inclusive
+    const untilIso = until
+      ? new Date(until.getTime() + 24 * 60 * 60 * 1000).toISOString()
+      : undefined;
 
     let hasNext = true;
     do {
