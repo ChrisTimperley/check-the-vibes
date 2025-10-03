@@ -69,14 +69,9 @@ export const Header: React.FC<HeaderProps> = ({
           </Button>
         )}
 
-        <Button
-          color="inherit"
-          startIcon={<Refresh />}
-          onClick={onRefresh}
-          sx={{ mr: 1 }}
-        >
-          Refresh
-        </Button>
+        <IconButton color="inherit" onClick={onRefresh} sx={{ mr: 1 }}>
+          <Refresh />
+        </IconButton>
         <IconButton color="inherit">
           <Settings />
         </IconButton>
