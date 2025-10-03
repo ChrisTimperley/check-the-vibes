@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Typography, Container, Box } from '@mui/material';
+import {
+  Typography,
+  Container,
+  Box,
+  CircularProgress,
+  Paper,
+} from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { mockAnalysisData } from './data/mockData';
@@ -113,8 +119,29 @@ function App() {
           />
         )}
 
+        {/* Loading indicator */}
+        {isAnalyzing && (
+          <Paper
+            sx={{
+              p: 6,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 2,
+            }}
+          >
+            <CircularProgress size={60} />
+            <Typography variant="h6" color="text.secondary">
+              Analyzing {owner}/{repo}...
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              This may take a moment for large repositories
+            </Typography>
+          </Paper>
+        )}
+
         {/* Show analysis results only after analysis and when not changing repository */}
-        {hasAnalyzed && !showRepositoryInput && (
+        {hasAnalyzed && !showRepositoryInput && !isAnalyzing && (
           <>
             <ContributorsSection
               contributors={data.contributors}
