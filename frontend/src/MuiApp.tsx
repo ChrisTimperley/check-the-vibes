@@ -65,15 +65,16 @@ function App() {
   const handleAnalyze = () => {
     console.log('Starting analysis...');
     setShowRepositoryInput(false);
+    setHasAnalyzed(true);
     fetchAnalysisData();
   };
 
-  // Only automatically fetch when we have repo info and analysis has been triggered
+  // Only automatically re-fetch when time window changes (after initial analysis)
   useEffect(() => {
-    if (hasAnalyzed && owner && repo) {
+    if (hasAnalyzed && owner && repo && !showRepositoryInput) {
       fetchAnalysisData();
     }
-  }, [timeWindow, hasAnalyzed, owner, repo]);
+  }, [timeWindow]);
 
   const handleRefresh = () => {
     console.log('Refreshing data...');
@@ -83,11 +84,6 @@ function App() {
   const handleChangeRepository = () => {
     console.log('Changing repository...');
     setShowRepositoryInput(true);
-  };
-
-  const handleCancelChangeRepository = () => {
-    console.log('Canceling repository change...');
-    setShowRepositoryInput(false);
   };
 
   return (
@@ -114,8 +110,6 @@ function App() {
             onOwnerChange={setOwner}
             onRepoChange={setRepo}
             onAnalyze={handleAnalyze}
-            onCancel={handleCancelChangeRepository}
-            showCancel={hasAnalyzed && showRepositoryInput}
           />
         )}
 

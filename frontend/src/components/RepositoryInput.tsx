@@ -1,6 +1,6 @@
 import React from 'react';
 import { Typography, Button, TextField, Box, Paper } from '@mui/material';
-import { Search, Cancel } from '@mui/icons-material';
+import { Search } from '@mui/icons-material';
 
 interface RepositoryInputProps {
   owner: string;
@@ -9,8 +9,6 @@ interface RepositoryInputProps {
   onOwnerChange: (value: string) => void;
   onRepoChange: (value: string) => void;
   onAnalyze: () => void;
-  onCancel?: () => void;
-  showCancel?: boolean;
 }
 
 export const RepositoryInput: React.FC<RepositoryInputProps> = ({
@@ -20,8 +18,6 @@ export const RepositoryInput: React.FC<RepositoryInputProps> = ({
   onOwnerChange,
   onRepoChange,
   onAnalyze,
-  onCancel,
-  showCancel = false,
 }) => {
   return (
     <Paper sx={{ p: 3, mb: 4 }}>
@@ -65,18 +61,6 @@ export const RepositoryInput: React.FC<RepositoryInputProps> = ({
         >
           {isAnalyzing ? 'Analyzing...' : 'Analyze Repository'}
         </Button>
-        {showCancel && (
-          <Button
-            variant="outlined"
-            size="large"
-            startIcon={<Cancel />}
-            onClick={onCancel}
-            disabled={isAnalyzing}
-            sx={{ py: 1.5, minWidth: 120 }}
-          >
-            Cancel
-          </Button>
-        )}
       </Box>
     </Paper>
   );
