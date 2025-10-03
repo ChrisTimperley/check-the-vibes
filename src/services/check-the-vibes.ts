@@ -94,6 +94,13 @@ export class CheckTheVibesService {
       contribMap.get(login)!.prs += 1;
     }
 
+    // Exclude bot authors
+    for (const login of contribMap.keys()) {
+      if (login.endsWith('[bot]')) {
+        contribMap.delete(login);
+      }
+    }
+
     // Build contributors array with avatar URLs
     return Array.from(contribMap.values()).map((c) => ({
       login: c.login,
