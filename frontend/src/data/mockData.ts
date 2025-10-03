@@ -17,26 +17,31 @@ export const mockAnalysisData: AnalysisReport = {
     {
       login: 'alice',
       commits: 14,
+      commits_all_branches: 18,
       prs: 3,
     },
     {
       login: 'bob',
       commits: 8,
+      commits_all_branches: 12,
       prs: 4,
     },
     {
       login: 'carol',
       commits: 12,
+      commits_all_branches: 15,
       prs: 2,
     },
     {
       login: 'dave',
       commits: 6,
+      commits_all_branches: 9,
       prs: 1,
     },
     {
       login: 'eve',
       commits: 10,
+      commits_all_branches: 13,
       prs: 2,
     },
   ],
