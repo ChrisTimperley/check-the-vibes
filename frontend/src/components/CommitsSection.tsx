@@ -55,6 +55,7 @@ export const CommitsSection: React.FC<CommitsSectionProps> = ({
                 <TableCell sx={{ fontWeight: 700 }}>Message</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Lines</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Date</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>PR</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>CI</TableCell>
               </TableRow>
             </TableHead>
@@ -108,6 +109,7 @@ export const CommitsSection: React.FC<CommitsSectionProps> = ({
                     </Box>
                   </TableCell>
                   <TableCell>{formatDateTime(c.date)}</TableCell>
+                  <TableCell>—</TableCell>
                   <TableCell>
                     <Chip
                       label={
