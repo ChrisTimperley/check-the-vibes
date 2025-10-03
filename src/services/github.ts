@@ -764,7 +764,8 @@ export class GitHubService {
 
           // Get last commit info
           const lastCommitSha = target?.oid || '';
-          const lastCommitDate = target?.committedDate || new Date().toISOString();
+          const lastCommitDate =
+            target?.committedDate || new Date().toISOString();
 
           // Calculate ahead/behind compared to default branch using GraphQL
           let aheadBy: number | undefined;
@@ -785,12 +786,15 @@ export class GitHubService {
                 }
               `;
 
-              const compareResult: any = await this.octokit.graphql(compareQuery, {
-                owner,
-                repo,
-                base: `refs/heads/${defaultBranch}`,
-                head: `refs/heads/${branchName}`,
-              });
+              const compareResult: any = await this.octokit.graphql(
+                compareQuery,
+                {
+                  owner,
+                  repo,
+                  base: `refs/heads/${defaultBranch}`,
+                  head: `refs/heads/${branchName}`,
+                }
+              );
 
               const comparison = compareResult.repository?.base?.compare;
               aheadBy = comparison?.aheadBy;
@@ -813,7 +817,9 @@ export class GitHubService {
             url: `https://github.com/${owner}/${repo}/tree/${branchName}`,
           });
 
-          console.log(`  ✅ Fetched branch: ${branchName} (${contributorsSet.size} contributors)`);
+          console.log(
+            `  ✅ Fetched branch: ${branchName} (${contributorsSet.size} contributors)`
+          );
         } catch (error: any) {
           console.warn(
             `  ⚠️  Failed to fetch details for branch ${branchName}:`,
