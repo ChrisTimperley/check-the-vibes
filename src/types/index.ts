@@ -1,3 +1,7 @@
+// Re-export shared types
+export * from '../../shared/types/index.js';
+
+// Backend-specific types (if needed in the future)
 export interface PullRequestAnalysis {
   number: number;
   title: string;
@@ -21,14 +25,4 @@ export interface PullRequestAnalysis {
   ciStatus?: 'success' | 'failure' | 'pending' | 'unknown';
   linkedIssue: number | null;
   url: string;
-}
-
-export interface Commit {
-  sha: string; // full SHA
-  committer: string;
-  message: string;
-  date: string; // ISO timestamp
-  ci_status?: 'pass' | 'fail' | 'pending' | 'unknown' | 'none';
-  additions?: number;
-  deletions?: number;
 }
