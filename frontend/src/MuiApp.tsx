@@ -22,16 +22,29 @@ import {
 
 function App() {
   const [data, setData] = useState(mockAnalysisData);
-  const [timeWindow, setTimeWindow] = useState('14');
   const [owner, setOwner] = useState('');
   const [repo, setRepo] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [hasAnalyzed, setHasAnalyzed] = useState(false);
   const [showRepositoryInput, setShowRepositoryInput] = useState(false);
 
+  // Initialize dates: default to last 14 days
+  const getDefaultStartDate = () => {
+    const date = new Date();
+    date.setDate(date.getDate() - 14);
+    return date.toISOString().split('T')[0];
+  };
+
+  const getDefaultEndDate = () => {
+    return new Date().toISOString().split('T')[0];
+  };
+
+  const [startDate, setStartDate] = useState(getDefaultStartDate());
+  const [endDate, setEndDate] = useState(getDefaultEndDate());
+
   const fetchAnalysisData = async () => {
-    if (!owner || !repo) {
-      console.log('Owner and repo are required');
+    if (!owner || !repo || !startDate || !endDate) {
+      console.log('Owner, repo, and dates are required');
       return;
     }
 
@@ -39,13 +52,15 @@ function App() {
     try {
       console.log('Fetching analysis data from API...');
       const repoName = `${owner}/${repo}`;
-      const since = new Date();
-      since.setDate(since.getDate() - Number(timeWindow));
+      const fromDate = new Date(startDate);
+      const toDate = new Date(endDate);
+      // Set to end of day for the end date
+      toDate.setHours(23, 59, 59, 999);
 
       const response = await fetch(
         `http://localhost:8000/analyze?repo=${encodeURIComponent(repoName)}&from=${encodeURIComponent(
-          since.toISOString()
-        )}&to=${encodeURIComponent(new Date().toISOString())}`
+          fromDate.toISOString()
+        )}&to=${encodeURIComponent(toDate.toISOString())}`
       );
 
       if (!response.ok) {
@@ -75,12 +90,12 @@ function App() {
     fetchAnalysisData();
   };
 
-  // Only automatically re-fetch when time window changes (after initial analysis)
+  // Only automatically re-fetch when dates change (after initial analysis)
   useEffect(() => {
     if (hasAnalyzed && owner && repo && !showRepositoryInput) {
       fetchAnalysisData();
     }
-  }, [timeWindow]);
+  }, [startDate, endDate]);
 
   const handleRefresh = () => {
     console.log('Refreshing data...');
@@ -98,10 +113,6 @@ function App() {
 
       <Header
         hasAnalyzed={hasAnalyzed}
-        owner={owner}
-        repo={repo}
-        timeWindow={timeWindow}
-        onTimeWindowChange={setTimeWindow}
         onRefresh={handleRefresh}
         onChangeRepository={handleChangeRepository}
       />
@@ -112,9 +123,13 @@ function App() {
           <RepositoryInput
             owner={owner}
             repo={repo}
+            startDate={startDate}
+            endDate={endDate}
             isAnalyzing={isAnalyzing}
             onOwnerChange={setOwner}
             onRepoChange={setRepo}
+            onStartDateChange={setStartDate}
+            onEndDateChange={setEndDate}
             onAnalyze={handleAnalyze}
           />
         )}
