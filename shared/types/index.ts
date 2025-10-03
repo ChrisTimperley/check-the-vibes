@@ -70,6 +70,7 @@ export interface Commit {
   committer: string;
   message: string;
   date: string; // ISO timestamp
+  pr?: number; // associated PR number, if any
   ci_status?: 'pass' | 'fail' | 'pending' | 'unknown' | 'none';
   additions?: number;
   deletions?: number;
