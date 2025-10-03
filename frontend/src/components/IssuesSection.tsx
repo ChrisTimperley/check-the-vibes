@@ -25,7 +25,7 @@ import {
   Radio,
   Badge,
 } from '@mui/material';
-import { Settings, FilterAlt } from '@mui/icons-material';
+import { FilterAlt } from '@mui/icons-material';
 import { Issue } from '../types';
 import { formatDate } from '../utils/dateUtils';
 
