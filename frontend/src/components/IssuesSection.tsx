@@ -44,8 +44,6 @@ interface IssueFilters {
   author: string;
   status: 'all' | 'open' | 'closed';
   linkedPR: 'all' | 'with' | 'without';
-  dateFrom: string;
-  dateTo: string;
 }
 
 export const IssuesSection: React.FC<IssuesSectionProps> = ({
@@ -60,8 +58,6 @@ export const IssuesSection: React.FC<IssuesSectionProps> = ({
     author: '',
     status: 'all',
     linkedPR: 'all',
-    dateFrom: '',
-    dateTo: '',
   });
 
   // Sort issues based on current sort criteria
@@ -119,16 +115,6 @@ export const IssuesSection: React.FC<IssuesSectionProps> = ({
         return false;
       }
 
-      // Date from filter
-      if (filters.dateFrom && new Date(issue.created_at) < new Date(filters.dateFrom)) {
-        return false;
-      }
-
-      // Date to filter
-      if (filters.dateTo && new Date(issue.created_at) > new Date(filters.dateTo)) {
-        return false;
-      }
-
       return true;
     });
   }, [sortedIssues, filters]);
@@ -139,8 +125,6 @@ export const IssuesSection: React.FC<IssuesSectionProps> = ({
     if (filters.author) count++;
     if (filters.status !== 'all') count++;
     if (filters.linkedPR !== 'all') count++;
-    if (filters.dateFrom) count++;
-    if (filters.dateTo) count++;
     return count;
   }, [filters]);
 
@@ -158,8 +142,6 @@ export const IssuesSection: React.FC<IssuesSectionProps> = ({
       author: '',
       status: 'all',
       linkedPR: 'all',
-      dateFrom: '',
-      dateTo: '',
     });
   };
 
@@ -468,31 +450,6 @@ export const IssuesSection: React.FC<IssuesSectionProps> = ({
                   <FormControlLabel value="without" control={<Radio />} label="No linked PR" />
                 </RadioGroup>
               </FormControl>
-
-              {/* Date Range Filter */}
-              <Box>
-                <FormLabel>Created Date Range</FormLabel>
-                <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
-                  <TextField
-                    label="From"
-                    type="date"
-                    value={filters.dateFrom}
-                    onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
-                    InputLabelProps={{ shrink: true }}
-                    size="small"
-                    fullWidth
-                  />
-                  <TextField
-                    label="To"
-                    type="date"
-                    value={filters.dateTo}
-                    onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
-                    InputLabelProps={{ shrink: true }}
-                    size="small"
-                    fullWidth
-                  />
-                </Box>
-              </Box>
             </Box>
           </DialogContent>
           <DialogActions>
