@@ -16,13 +16,13 @@ import { Commit } from '../types';
 import { formatDateTime } from '../utils/dateUtils';
 
 interface CommitsSectionProps {
-  directPushes: Commit[];
+  commits: Commit[];
   owner: string;
   repo: string;
 }
 
 export const CommitsSection: React.FC<CommitsSectionProps> = ({
-  directPushes,
+  commits: commits,
   owner,
   repo,
 }) => {
@@ -46,7 +46,7 @@ export const CommitsSection: React.FC<CommitsSectionProps> = ({
           </div>
         </Box>
 
-        {directPushes && directPushes.length > 0 ? (
+        {commits && commits.length > 0 ? (
           <Table size="small">
             <TableHead>
               <TableRow>
@@ -59,7 +59,7 @@ export const CommitsSection: React.FC<CommitsSectionProps> = ({
               </TableRow>
             </TableHead>
             <TableBody>
-              {directPushes.map((c) => (
+              {commits.map((c) => (
                 <TableRow key={c.sha}>
                   <TableCell>
                     <Link

@@ -138,7 +138,7 @@ function App() {
             />
 
             <CommitsSection
-              directPushes={data.commits || []}
+              commits={data.commits || []}
               owner={owner}
               repo={repo}
             />
