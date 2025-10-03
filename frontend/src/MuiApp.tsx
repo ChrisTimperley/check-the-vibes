@@ -80,10 +80,6 @@ function App() {
     fetchAnalysisData();
   };
 
-  const handleExport = () => {
-    console.log('Exporting data...');
-  };
-
   const handleChangeRepository = () => {
     console.log('Changing repository...');
     setShowRepositoryInput(true);
@@ -105,7 +101,6 @@ function App() {
         timeWindow={timeWindow}
         onTimeWindowChange={setTimeWindow}
         onRefresh={handleRefresh}
-        onExport={handleExport}
         onChangeRepository={handleChangeRepository}
       />
 

@@ -9,7 +9,7 @@ import {
   MenuItem,
   FormControl,
 } from '@mui/material';
-import { Refresh, Download, Settings, Edit } from '@mui/icons-material';
+import { Refresh, Settings, Edit } from '@mui/icons-material';
 
 interface HeaderProps {
   hasAnalyzed: boolean;
@@ -18,7 +18,6 @@ interface HeaderProps {
   timeWindow: string;
   onTimeWindowChange: (value: string) => void;
   onRefresh: () => void;
-  onExport: () => void;
   onChangeRepository: () => void;
 }
 
@@ -29,7 +28,6 @@ export const Header: React.FC<HeaderProps> = ({
   timeWindow,
   onTimeWindowChange,
   onRefresh,
-  onExport,
   onChangeRepository,
 }) => {
   return (
@@ -78,14 +76,6 @@ export const Header: React.FC<HeaderProps> = ({
           sx={{ mr: 1 }}
         >
           Refresh
-        </Button>
-        <Button
-          color="inherit"
-          startIcon={<Download />}
-          onClick={onExport}
-          sx={{ mr: 1 }}
-        >
-          Export
         </Button>
         <IconButton color="inherit">
           <Settings />
