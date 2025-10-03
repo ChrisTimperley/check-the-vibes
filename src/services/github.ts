@@ -633,6 +633,7 @@ export class GitHubService {
 
   /**
    * Fetch branch information including contributors and commit details
+   * Uses only GraphQL queries (no REST API calls)
    */
   async fetchBranches(
     owner: string,
@@ -640,37 +641,80 @@ export class GitHubService {
     since: Date,
     until?: Date
   ): Promise<Branch[]> {
-    console.log(`🌿 Fetching branches for ${owner}/${repo}...`);
+    console.log(`🌿 Fetching branches for ${owner}/${repo} (graphql)...`);
     const branches: Branch[] = [];
+    const sinceIso = since.toISOString();
+    const untilIso = until ? until.toISOString() : new Date().toISOString();
 
     try {
-      // Get repository info to find default branch
-      const repoInfo = await this.octokit.repos.get({ owner, repo });
-      const defaultBranch = repoInfo.data.default_branch;
+      // First, get repository info and default branch name
+      const repoQuery = `
+        query($owner: String!, $repo: String!) {
+          repository(owner: $owner, name: $repo) {
+            defaultBranchRef {
+              name
+            }
+          }
+        }
+      `;
 
-      // Get all branches
-      const branchesResponse = await this.octokit.repos.listBranches({
+      const repoResult: any = await this.octokit.graphql(repoQuery, {
         owner,
         repo,
-        per_page: 100,
       });
 
-      console.log(`📊 Found ${branchesResponse.data.length} branches`);
+      const defaultBranch = repoResult.repository?.defaultBranchRef?.name;
+      if (!defaultBranch) {
+        console.warn('⚠️  Could not determine default branch');
+        return [];
+      }
 
-      for (const branch of branchesResponse.data) {
+      // Get all branches with pagination
+      const branchesQuery = `
+        query($owner: String!, $repo: String!, $after: String) {
+          repository(owner: $owner, name: $repo) {
+            refs(first: 100, refPrefix: "refs/heads/", after: $after) {
+              pageInfo {
+                hasNextPage
+                endCursor
+              }
+              nodes {
+                name
+              }
+            }
+          }
+        }
+      `;
+
+      const branchNames: string[] = [];
+      let hasNext = true;
+      let after: string | null = null;
+
+      while (hasNext) {
+        const result: any = await this.octokit.graphql(branchesQuery, {
+          owner,
+          repo,
+          after,
+        });
+
+        const refsData = result.repository?.refs;
+        if (!refsData) break;
+
+        const nodes = refsData.nodes || [];
+        for (const node of nodes) {
+          branchNames.push(node.name);
+        }
+
+        hasNext = refsData.pageInfo?.hasNextPage || false;
+        after = refsData.pageInfo?.endCursor || null;
+      }
+
+      console.log(`📊 Found ${branchNames.length} branches`);
+
+      // For each branch, get detailed information
+      for (const branchName of branchNames) {
         try {
-          // Get branch details
-          const branchData = await this.octokit.repos.getBranch({
-            owner,
-            repo,
-            branch: branch.name,
-          });
-
-          // Get commits for this branch to find contributors
-          const sinceIso = since.toISOString();
-          const untilIso = until ? until.toISOString() : new Date().toISOString();
-
-          const query = `
+          const branchQuery = `
             query($owner: String!, $repo: String!, $branch: String!, $since: GitTimestamp!, $until: GitTimestamp!) {
               repository(owner: $owner, name: $repo) {
                 ref(qualifiedName: $branch) {
@@ -697,15 +741,16 @@ export class GitHubService {
             }
           `;
 
-          const result: any = await this.octokit.graphql(query, {
+          const branchResult: any = await this.octokit.graphql(branchQuery, {
             owner,
             repo,
-            branch: `refs/heads/${branch.name}`,
+            branch: `refs/heads/${branchName}`,
             since: sinceIso,
             until: untilIso,
           });
 
-          const history = result.repository?.ref?.target?.history;
+          const target = branchResult.repository?.ref?.target;
+          const history = target?.history;
           const contributorsSet = new Set<string>();
 
           if (history && history.nodes) {
@@ -717,42 +762,61 @@ export class GitHubService {
             }
           }
 
-          // Calculate ahead/behind compared to default branch
+          // Get last commit info
+          const lastCommitSha = target?.oid || '';
+          const lastCommitDate = target?.committedDate || new Date().toISOString();
+
+          // Calculate ahead/behind compared to default branch using GraphQL
           let aheadBy: number | undefined;
           let behindBy: number | undefined;
 
-          if (branch.name !== defaultBranch) {
+          if (branchName !== defaultBranch) {
             try {
-              const comparison = await this.octokit.repos.compareCommits({
+              const compareQuery = `
+                query($owner: String!, $repo: String!, $base: String!, $head: String!) {
+                  repository(owner: $owner, name: $repo) {
+                    base: ref(qualifiedName: $base) {
+                      compare(headRef: $head) {
+                        aheadBy
+                        behindBy
+                      }
+                    }
+                  }
+                }
+              `;
+
+              const compareResult: any = await this.octokit.graphql(compareQuery, {
                 owner,
                 repo,
-                base: defaultBranch,
-                head: branch.name,
+                base: `refs/heads/${defaultBranch}`,
+                head: `refs/heads/${branchName}`,
               });
-              aheadBy = comparison.data.ahead_by;
-              behindBy = comparison.data.behind_by;
+
+              const comparison = compareResult.repository?.base?.compare;
+              aheadBy = comparison?.aheadBy;
+              behindBy = comparison?.behindBy;
             } catch (error: any) {
               console.warn(
-                `  ⚠️  Could not compare branch ${branch.name} with ${defaultBranch}:`,
+                `  ⚠️  Could not compare branch ${branchName} with ${defaultBranch}:`,
                 error?.message || error
               );
             }
           }
 
           branches.push({
-            name: branch.name,
-            last_commit_sha: branchData.data.commit.sha,
-            last_commit_date: branchData.data.commit.commit.committer?.date || new Date().toISOString(),
+            name: branchName,
+            last_commit_sha: lastCommitSha,
+            last_commit_date: lastCommitDate,
             contributors: Array.from(contributorsSet),
             ahead_by: aheadBy,
             behind_by: behindBy,
-            url: `https://github.com/${owner}/${repo}/tree/${branch.name}`,
+            url: `https://github.com/${owner}/${repo}/tree/${branchName}`,
           });
 
-          console.log(`  ✅ Fetched branch: ${branch.name} (${contributorsSet.size} contributors)`);
+          console.log(`  ✅ Fetched branch: ${branchName} (${contributorsSet.size} contributors)`);
         } catch (error: any) {
           console.warn(
-            `  ⚠️  Failed to fetch details for branch ${branch.name}:`,
+            `  ⚠️  Failed to fetch details for branch ${branchName}:`,
             error?.message || error
           );
         }
