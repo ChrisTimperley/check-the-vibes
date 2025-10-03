@@ -6,7 +6,6 @@ import type {
   PullRequest,
   Commit,
 } from '../../shared/types/index.js';
-import type { PullRequestAnalysis } from '../types/index.js';
 
 /**
  * Service for analyzing GitHub repositories and generating metrics
@@ -53,7 +52,7 @@ export class CommitCultureService {
       },
       summary,
       contributors,
-      pull_requests: this.transformPullRequests(pullRequests),
+      pull_requests: pullRequests,
       commits: commits,
       issues,
     };
@@ -63,7 +62,7 @@ export class CommitCultureService {
    * Aggregate contributor statistics from PRs and commits
    */
   private aggregateContributors(
-    pullRequests: PullRequestAnalysis[],
+    pullRequests: PullRequest[],
     commits: Commit[]
   ): Contributor[] {
     const contribMap = new Map<
@@ -111,42 +110,11 @@ export class CommitCultureService {
   }
 
   /**
-   * Transform GitHub service PR analysis to API response format
-   */
-  private transformPullRequests(
-    pullRequests: PullRequestAnalysis[]
-  ): PullRequest[] {
-    return pullRequests.map((p) => ({
-      number: p.number,
-      title: p.title,
-      author: p.author,
-      created_at: p.createdAt,
-      closed_at: p.closedAt,
-      merged_at: p.mergedAt,
-      status:
-        p.state === 'merged'
-          ? 'Merged'
-          : p.state === 'closed'
-            ? 'Closed'
-            : 'Open',
-      linked_issues: p.linkedIssue ? [p.linkedIssue] : [],
-      additions: p.linesChanged.additions,
-      deletions: p.linesChanged.deletions,
-      reviewers: p.reviewers || [],
-      ci_status: p.ciStatus || 'unknown',
-      url: p.url,
-      comments: p.commentCount || 0,
-    }));
-  }
-
-  /**
    * Calculate percentage of PRs that have reviews
    */
-  private calculateReviewPercentage(
-    pullRequests: PullRequestAnalysis[]
-  ): number {
+  private calculateReviewPercentage(pullRequests: PullRequest[]): number {
     if (pullRequests.length === 0) return 0;
-    const reviewed = pullRequests.filter((p) => p.hasReviews).length;
+    const reviewed = pullRequests.filter((p) => p.reviewers.length > 0).length;
     return reviewed / pullRequests.length;
   }
 

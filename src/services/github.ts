@@ -1,5 +1,5 @@
 import { Octokit } from '@octokit/rest';
-import type { PullRequestAnalysis } from '../types/index.js';
+import type { PullRequest } from '../types/index.js';
 import type { Commit } from '../types/index.js';
 
 export class GitHubService {
@@ -25,8 +25,8 @@ export class GitHubService {
     repo: string,
     since: Date,
     until?: Date
-  ): Promise<PullRequestAnalysis[]> {
-    const pullRequests: PullRequestAnalysis[] = [];
+  ): Promise<PullRequest[]> {
+    const pullRequests: PullRequest[] = [];
     let page = 1;
     const perPage = 100;
     let totalProcessed = 0;
@@ -105,7 +105,7 @@ export class GitHubService {
     owner: string,
     repo: string,
     prNumber: number
-  ): Promise<PullRequestAnalysis> {
+  ): Promise<PullRequest> {
     console.log(`  📊 Fetching detailed data for PR #${prNumber} (graphql)...`);
     const query = `
       query($owner: String!, $repo: String!, $number: Int!) {
@@ -215,31 +215,23 @@ export class GitHubService {
       ciStatus = 'unknown';
     }
 
-    const state: 'merged' | 'closed' | 'open' = (() => {
-      if (pr.mergedAt) return 'merged';
-      if (String(pr.state || '').toLowerCase() === 'closed') return 'closed';
-      return 'open';
+    const status: 'Open' | 'Closed' | 'Merged' | 'Draft' = (() => {
+      if (pr.mergedAt) return 'Merged';
+      if (String(pr.state || '').toLowerCase() === 'closed') return 'Closed';
+      return 'Open';
     })();
 
     return {
       number: pr.number,
       title: pr.title,
       author: pr.author?.login || 'unknown',
-      createdAt: pr.createdAt,
-      mergedAt: pr.mergedAt || undefined,
-      closedAt: pr.closedAt || undefined,
-      state,
-      linesChanged: {
-        additions: totalAdditions,
-        deletions: totalDeletions,
-        total: totalAdditions + totalDeletions,
-      },
-      filesChanged: pr.changedFiles || 0,
-      commits: pr.commits?.totalCount || 0,
-      reviewCount: pr.reviews?.totalCount || 0,
-      commentCount: pr.comments?.totalCount || 0,
-      hasReviews: (pr.reviews?.totalCount || 0) > 0,
-      hasComments: (pr.comments?.totalCount || 0) > 0,
+      created_at: pr.createdAt,
+      merged_at: pr.mergedAt || undefined,
+      closed_at: pr.closedAt || undefined,
+      status,
+      linked_issues: linkedIssue ? [linkedIssue] : [],
+      additions: totalAdditions,
+      deletions: totalDeletions,
       reviewers: Array.from(
         new Set(
           ((pr.reviews?.nodes || []) as any[])
@@ -247,9 +239,9 @@ export class GitHubService {
             .filter(Boolean) as string[]
         )
       ),
-      ciStatus,
-      linkedIssue,
+      ci_status: ciStatus,
       url: pr.url || pr.html_url,
+      comments: pr.comments?.totalCount || 0,
     };
   }
 
