@@ -26,12 +26,13 @@ export class CommitCultureService {
     from: Date,
     to: Date
   ): Promise<AnalysisReport> {
-    const [pullRequests, commits, issues, allBranchesCommitCounts] =
+    const [pullRequests, commits, issues, allBranchesCommitCounts, branches] =
       await Promise.all([
         this.github.getPullRequestsSince(owner, repo, from, to),
         this.github.fetchCommitsForDefaultBranch(owner, repo, from, to),
         this.github.getIssuesSince(owner, repo, from, to),
         this.github.getCommitCountsAcrossBranches(owner, repo, from, to),
+        this.github.fetchBranches(owner, repo, from, to),
       ]);
 
     // Aggregate contributor data
@@ -61,6 +62,7 @@ export class CommitCultureService {
       pull_requests: pullRequests,
       commits: commits,
       issues,
+      branches,
     };
   }
 

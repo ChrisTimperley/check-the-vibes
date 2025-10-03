@@ -1,6 +1,5 @@
 import { Octokit } from '@octokit/rest';
-import type { PullRequest } from '../types/index.js';
-import type { Commit } from '../types/index.js';
+import type { PullRequest, Branch, Commit } from '../types/index.js';
 
 export class GitHubService {
   private octokit: Octokit;
@@ -630,6 +629,141 @@ export class GitHubService {
       `🎉 Found ${commitCounts.size} contributors with ${seenShas.size} unique commits across all branches`
     );
     return commitCounts;
+  }
+
+  /**
+   * Fetch branch information including contributors and commit details
+   */
+  async fetchBranches(
+    owner: string,
+    repo: string,
+    since: Date,
+    until?: Date
+  ): Promise<Branch[]> {
+    console.log(`🌿 Fetching branches for ${owner}/${repo}...`);
+    const branches: Branch[] = [];
+
+    try {
+      // Get repository info to find default branch
+      const repoInfo = await this.octokit.repos.get({ owner, repo });
+      const defaultBranch = repoInfo.data.default_branch;
+
+      // Get all branches
+      const branchesResponse = await this.octokit.repos.listBranches({
+        owner,
+        repo,
+        per_page: 100,
+      });
+
+      console.log(`📊 Found ${branchesResponse.data.length} branches`);
+
+      for (const branch of branchesResponse.data) {
+        try {
+          // Get branch details
+          const branchData = await this.octokit.repos.getBranch({
+            owner,
+            repo,
+            branch: branch.name,
+          });
+
+          // Get commits for this branch to find contributors
+          const sinceIso = since.toISOString();
+          const untilIso = until ? until.toISOString() : new Date().toISOString();
+
+          const query = `
+            query($owner: String!, $repo: String!, $branch: String!, $since: GitTimestamp!, $until: GitTimestamp!) {
+              repository(owner: $owner, name: $repo) {
+                ref(qualifiedName: $branch) {
+                  target {
+                    ... on Commit {
+                      oid
+                      committedDate
+                      history(first: 100, since: $since, until: $until) {
+                        nodes {
+                          oid
+                          author {
+                            name
+                            email
+                            user {
+                              login
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          `;
+
+          const result: any = await this.octokit.graphql(query, {
+            owner,
+            repo,
+            branch: `refs/heads/${branch.name}`,
+            since: sinceIso,
+            until: untilIso,
+          });
+
+          const history = result.repository?.ref?.target?.history;
+          const contributorsSet = new Set<string>();
+
+          if (history && history.nodes) {
+            for (const node of history.nodes) {
+              const login = node.author?.user?.login || node.author?.name;
+              if (login) {
+                contributorsSet.add(login);
+              }
+            }
+          }
+
+          // Calculate ahead/behind compared to default branch
+          let aheadBy: number | undefined;
+          let behindBy: number | undefined;
+
+          if (branch.name !== defaultBranch) {
+            try {
+              const comparison = await this.octokit.repos.compareCommits({
+                owner,
+                repo,
+                base: defaultBranch,
+                head: branch.name,
+              });
+              aheadBy = comparison.data.ahead_by;
+              behindBy = comparison.data.behind_by;
+            } catch (error: any) {
+              console.warn(
+                `  ⚠️  Could not compare branch ${branch.name} with ${defaultBranch}:`,
+                error?.message || error
+              );
+            }
+          }
+
+          branches.push({
+            name: branch.name,
+            last_commit_sha: branchData.data.commit.sha,
+            last_commit_date: branchData.data.commit.commit.committer?.date || new Date().toISOString(),
+            contributors: Array.from(contributorsSet),
+            ahead_by: aheadBy,
+            behind_by: behindBy,
+            url: `https://github.com/${owner}/${repo}/tree/${branch.name}`,
+          });
+
+          console.log(`  ✅ Fetched branch: ${branch.name} (${contributorsSet.size} contributors)`);
+        } catch (error: any) {
+          console.warn(
+            `  ⚠️  Failed to fetch details for branch ${branch.name}:`,
+            error?.message || error
+          );
+        }
+      }
+
+      console.log(`🎉 Completed fetching ${branches.length} branches`);
+      return branches;
+    } catch (error: any) {
+      console.error('❌ Failed to fetch branches:', error?.message || error);
+      return [];
+    }
   }
 
   /**
