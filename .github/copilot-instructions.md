@@ -62,9 +62,8 @@ Predefined VS Code tasks are available in `.vscode/tasks.json`:
 - `server.ts` - Main Fastify server configuration
 - `routes/` - API route handlers (health, analyze)
 - `services/` - Business logic (GitHub API integration)
-- `schemas/` - JSON schema definitions for validation
+- `utils/` - Utility functions (validation, helpers)
 - `types/` - Backend-specific types (re-exports shared types)
-- `plugins/` - Fastify plugins (Swagger, CORS)
 
 ### Frontend Structure (`frontend/src/`)
 
@@ -91,14 +90,15 @@ Predefined VS Code tasks are available in `.vscode/tasks.json`:
 ### API Design
 
 - RESTful endpoints with clear naming
-- JSON Schema validation for requests/responses
+- TypeScript types for compile-time safety
+- Simple runtime validation for inputs
 - Comprehensive error handling with appropriate status codes
-- Swagger/OpenAPI documentation auto-generated
 
 ## Key Patterns & Architecture
 
 ### Backend Patterns
 
+- **Simple Validation:** TypeScript types + runtime checks (no JSON Schema)
 - **Plugin Architecture:** Use Fastify plugins for modularity
 - **Service Layer:** Separate GitHub API logic in services
 - **Schema-First:** Define JSON schemas for validation
@@ -143,14 +143,13 @@ Predefined VS Code tasks are available in `.vscode/tasks.json`:
 
 - **Types:** `shared/types/*.ts` - Shared type definitions for both frontend and backend
   - Always add new API data types here
-  - Keep in sync with JSON schemas in `src/schemas/`
   - Both `src/types/` and `frontend/src/types/` re-export from here
 
 ### Backend Files
 
 - Route handlers: `routes/*.ts`
 - Services: `services/*.ts`
-- Schemas: `schemas/*.ts`
+- Validation: `utils/validation.ts`
 - Types: `types/*.ts` (re-exports from `shared/types/`)
 
 ### Frontend Files
@@ -186,11 +185,11 @@ Predefined VS Code tasks are available in `.vscode/tasks.json`:
 
 ### Adding New API Endpoints
 
-1. Define JSON schema in `schemas/`
-2. Add route handler in `routes/`
-3. Implement business logic in `services/`
-4. Add TypeScript types
-5. Update Swagger documentation
+1. Add TypeScript types to `shared/types/` for request/response
+2. Create validation function in `utils/validation.ts` if needed
+3. Add route handler in `routes/`
+4. Implement business logic in `services/`
+5. Handle errors appropriately (400 for validation, 500 for server errors)
 
 ### Adding New Frontend Components
 

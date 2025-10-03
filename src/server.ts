@@ -4,21 +4,6 @@ import Fastify from 'fastify';
 import dotenv from 'dotenv';
 import { healthRoutes } from './routes/health.js';
 import { analyzeRoutes } from './routes/analyze.js';
-import { swaggerPlugin } from './plugins/swagger.js';
-import {
-  errorSchema,
-  analyzeResponseSchema,
-  contributorSchema,
-  pullRequestSchema,
-  issueSchema,
-  loginSchema,
-  urlSchema,
-  labelSchema,
-  prStatusSchema,
-  ciStatusSchema,
-  commitSchema,
-  queryAnalyzeSchema,
-} from './schemas/index.js';
 
 // Load environment variables
 dotenv.config();
@@ -53,21 +38,6 @@ await server.register(import('@fastify/cors'), {
   origin: ['http://localhost:3000'],
   credentials: true,
 });
-await server.register(swaggerPlugin);
-
-// Register schemas (must be done before registering routes that reference them)
-server.addSchema(loginSchema);
-server.addSchema(urlSchema);
-server.addSchema(labelSchema);
-server.addSchema(prStatusSchema);
-server.addSchema(ciStatusSchema);
-server.addSchema(contributorSchema);
-server.addSchema(pullRequestSchema);
-server.addSchema(issueSchema);
-server.addSchema(commitSchema);
-server.addSchema(analyzeResponseSchema);
-server.addSchema(errorSchema);
-server.addSchema(queryAnalyzeSchema);
 
 // Register routes
 await server.register(healthRoutes);
@@ -82,7 +52,6 @@ const start = async (): Promise<void> => {
     await server.listen({ port, host });
 
     console.log('🚀 Server running on http://localhost:8000');
-    console.log('📚 API docs: http://localhost:8000/docs');
     console.log('❤️  Health check: http://localhost:8000/healthz');
   } catch (err) {
     server.log.error(err);
